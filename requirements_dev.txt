@@ -1,0 +1,24 @@
+certifi==2017.7.27.1
+chardet==3.0.4
+docopt==0.6.2
+funcsigs==1.0.2
+idna==2.5
+inflection==0.3.1
+mock==2.0.0
+more-itertools==3.2.0
+numpy==1.13.1
+pandas==0.20.3
+pbr==3.1.1
+pluggy==0.4.0
+py==1.4.34
+pytest==3.2.1
+python-dateutil==2.6.1
+pytz==2017.2
+Quandl==3.2.0
+-e git+git@bitbucket.org:pobept63/quandl_fund_xlsx.git@bb8943a361ef33db9a69c14d52b34c898337e9dc#egg=quandl_fund_xlsx
+requests==2.17.3
+six==1.10.0
+tox==2.7.0
+urllib3==1.21.1
+virtualenv==15.1.0
+XlsxWriter==0.9.8

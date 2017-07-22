@@ -1,0 +1,123 @@
+================
+quandl_fund_xlsx
+================
+
+
+.. image:: https://img.shields.io/pypi/v/quandl_fund_xlsx.svg
+        :target: https://pypi.python.org/pypi/quandl_fund_xlsx
+
+.. image:: https://img.shields.io/travis/robren/quandl_fund_xlsx.svg
+        :target: https://travis-ci.org/robren/quandl_fund_xlsx
+
+.. image:: https://readthedocs.org/projects/quandl_fund_xlsx/badge/?version=latest
+        :target: https://quandl_fund_xlsx.readthedocs.io/en/latest/?badge=latest
+        :alt: Documentation Status
+
+.. image:: https://pyup.io/repos/github/robren/quandl_fund_xlsx/shield.svg
+     :target: https://pyup.io/repos/github/robren/quandl_fund_xlsx/
+     :alt: Updates
+
+
+A unofficial CLI tool which uses the Quandl API and the Sharadar Essential Fundamentals
+Database  to extract and calculate financial fundamentals and ratios.  Results are
+written to an Excel Workbook with a new worksheet per ticker analysed.
+
+
+* Free software: Apache Software License 2.0
+* Documentation: https://quandl_fund_xlsx.readthedocs.io.
+
+
+Features
+--------
+
+For a given ticker, fundamental data is obtained using the Quandl API. This
+data is then used to calculate various useful, to the author, financial ratios. The ratios are
+currently focussed on getting a consistent feel for the amount of leverage a
+company has on it's balance sheet as well as its ability to service it's debt and pay a dividend.
+
+Some REIT specific ratios  such as FFO and AFFO are roughly approximated.
+These specific ratios are only roughly approximated since certain data,
+namely Real estate sales data for the period does not appear to be available
+via the API. 
+
+The output worksheets are divided into three main areas:
+
+- Quandl statement indicators. This is data obtained from the three main
+  financial statements; the Income Statement, the Balance Sheet and the Cash Flow
+  Statement. 
+
+- Quandl Metrics and Ratio Indicators. These are quandl provided financial ratios. 
+
+- Calculated Metrics and Ratios. These are calculated from the data provided
+  and tabulated by the statement indicators and the 'Metrics and Ratio' indicators. 
+
+The python Quandl API provides the ability to return data within python pandas
+dataframes. This makes calculating various ratios as simple as dividing two
+variables by each other.
+
+The calculations primarily use the data offered by the free
+`SF0 <https://www.quandl.com/data/SF0-Free-US-Fundamentals-Data/documentation/about#indicators>`_ database, if
+the paid for `SF1 <https://www.quandl.com/data/SF1-Core-US-Fundamentals-Data/documentation/dimensions>`_ 
+database is used, a richer set of data is available as well as a larger
+coverage universe of stocks is supported. 
+
+.. figure:: sample.png
+
+    The generated Excel workboot with one sheet per ticker.
+
+Installation 
+------------
+
+.. code:: bash
+
+    pip install quandl_fund_xlsx
+
+Usage:
+------
+.. code:: bash
+
+	quandl_fund_xlsx -h
+	quandl_fund_xlsx
+
+	Usage:
+	quandl_fund_xlsx (-i <ticker-file> | -t <ticker>) [-o <output-file>]
+									[-y <years>] [-d <sharadar-db>]
+									[--dimension <dimension>]
+
+	quandl_fund_xlsx.py (-h | --help)
+	quandl_fund_xlsx.py --version
+
+	Options:
+	-h --help             Show this screen.
+	-i --input <file>     File containing one ticker per line
+	-t --ticker <ticker>  Ticker symbol
+	-o --output <file>    Output file [default: stocks.xlsx]
+	-y --years <years>    How many years of results (max 7 with SF0) [default: 5]
+	-d --database <database>    Sharadar Fundamentals database to use [default: SF0]
+	--dimension           Sharadar database dimension [default: MRY]
+	--version             Show version.
+
+.. code:: bash
+
+	quandl_fund_xlsx -t INTC -o excel_files/intc.xlsx
+	{'--database': 'SF0',
+	'--input': None,
+	'--output': 'excel_files/intc.xlsx',
+	'--ticker': 'INTC',
+	'--years': '5'}
+	('Ticker =', 'INTC')
+	2017-08-22 06:08:59,751 INFO     Processing the stock INTC
+	2017-08-22 06:09:06,012 INFO     Processed the stock INTC
+
+	ls -lh excel_files
+	total 12K
+	-rw-rw-r-- 1 test test 8.7K Aug 22 06:09 intc.xlsx
+
+Credits
+---------
+
+This packge was created with Cookiecutter_ and the `audreyr/cookiecutter-pypackage`_ project template.
+
+.. _Cookiecutter: https://github.com/audreyr/cookiecutter
+.. _`audreyr/cookiecutter-pypackage`: https://github.com/audreyr/cookiecutter-pypackage
+
