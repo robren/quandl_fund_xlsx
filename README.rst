@@ -95,9 +95,11 @@ Usage:
 	-t --ticker <ticker>  Ticker symbol
 	-o --output <file>    Output file [default: stocks.xlsx]
 	-y --years <years>    How many years of results (max 7 with SF0) [default: 5]
-	-d --database <database>    Sharadar Fundamentals database to use [default: SF0]
-	--dimension           Sharadar database dimension [default: MRY]
+	-d --database <database>    Sharadar Fundamentals database to use, SFO or
+								SF1 [default: SF0]
+	--dimension <dimension>     Sharadar database dimension, MRY, MRT, ART [default: MRY]
 	--version             Show version.
+
 
 .. code:: bash
 
