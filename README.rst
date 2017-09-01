@@ -19,10 +19,12 @@ quandl_fund_xlsx
 
 
 A unofficial CLI tool which uses the Quandl API and the Sharadar Essential Fundamentals
-Database  to extract financial fundamentals  save Sharadar provided ratios as
-well as calculate additional ratios .  Results are
-written to an Excel Workbook with a new worksheet per ticker analysed.
+Database to extract financial fundamentals, Sharadar provided ratios as
+well as calculate additional ratios.  Results are
+written to an Excel Workbook with a separate worksheet per ticker analysed.
 
+Read the file called LICENCE and pay special attention to the terms of the
+Apache 2.0 license.
 
 * Free software: Apache Software License 2.0
 * Documentation: https://quandl_fund_xlsx.readthedocs.io.
@@ -32,38 +34,42 @@ Features
 --------
 
 For a given ticker, fundamental data is obtained using the Quandl API and the
-Sharadar Fundamentals database. This
-data is then used to calculate various useful, financial ratios. The ratios are
-currently focussed on getting a consistent feel for the amount of leverage a
-company has on it's balance sheet as well as its ability to service it's debt and pay a dividend.
+Sharadar Fundamentals database. This data is then used to calculate various
+useful, financial ratios. The ratios provide profitability indicators, a
+number of financial leverage indicators providing a sense of  the amount of
+debt a company has on it's balance sheet as well as its ability to service
+it's debt and pay a dividend.
 
 Some REIT specific ratios  such as FFO and AFFO are roughly approximated.
-These specific ratios are only roughly approximated since certain data,
-namely Real estate sales data for the period does not appear to be available
-via the API.
+These specific ratios are only roughly approximated since certain data, namely
+Real estate sales data for the period does not appear to be available via the
+API.
 
-The output worksheets are divided into three main areas:
+
+Within each ticker's excel worksheets it's  divided into three main areas:
 
 - Quandl statement indicators. This is data obtained from the three main
   financial statements; the Income Statement, the Balance Sheet and the Cash Flow
   Statement. 
 
-- Quandl Metrics and Ratio Indicators. These are quandl provided financial ratios. 
+- Quandl Metrics and Ratio Indicators. These are quandl provided financial ratios.
 
-- Calculated Metrics and Ratios. These are calculated from the data provided
-  and tabulated by the statement indicators and the 'Metrics and Ratio' indicators. 
+- Calculated Metrics and Ratios. These are calculated by the package from the
+  Sharadars data provided and tabulated by the statement indicators and the
+  'Metrics and Ratio' indicators.
 
 The python Quandl API provides the ability to return data within python pandas
 dataframes. This makes calculating various ratios as simple as dividing two
 variables by each other.
 
-The calculations primarily use the data offered by the free
-`SF0 <https://www.quandl.com/data/SF0-Free-US-Fundamentals-Data/documentation/about#indicators>`_ database, if
-the paid for `SF1 <https://www.quandl.com/data/SF1-Core-US-Fundamentals-Data/documentation/dimensions>`_ 
-database is used, a richer set of data is available as well as a larger
-coverage universe of stocks is supported. 
+The calculations support the data offered by the free `SF0
+<https://www.quandl.com/data/SF0-Free-US-Fundamentals-Data/documentation/about#indicators>`_
+database, and the paid for `SF1
+<https://www.quandl.com/data/SF1-Core-US-Fundamentals-Data/documentation/dimensions>`_
+database, a richer set of data is available as well as a larger coverage
+universe of stocks is supported by the paid SF1 database.
 
-.. figure:: sample.png
+.. figure:: snip.png
 
     The generated Excel workbook with one sheet per ticker.
 
