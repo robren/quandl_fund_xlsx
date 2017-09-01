@@ -19,7 +19,8 @@ quandl_fund_xlsx
 
 
 A unofficial CLI tool which uses the Quandl API and the Sharadar Essential Fundamentals
-Database  to extract and calculate financial fundamentals and ratios.  Results are
+Database  to extract financial fundamentals  save Sharadar provided ratios as
+well as calculate additional ratios .  Results are
 written to an Excel Workbook with a new worksheet per ticker analysed.
 
 
@@ -30,15 +31,16 @@ written to an Excel Workbook with a new worksheet per ticker analysed.
 Features
 --------
 
-For a given ticker, fundamental data is obtained using the Quandl API. This
-data is then used to calculate various useful, to the author, financial ratios. The ratios are
+For a given ticker, fundamental data is obtained using the Quandl API and the
+Sharadar Fundamentals database. This
+data is then used to calculate various useful, financial ratios. The ratios are
 currently focussed on getting a consistent feel for the amount of leverage a
 company has on it's balance sheet as well as its ability to service it's debt and pay a dividend.
 
 Some REIT specific ratios  such as FFO and AFFO are roughly approximated.
 These specific ratios are only roughly approximated since certain data,
 namely Real estate sales data for the period does not appear to be available
-via the API. 
+via the API.
 
 The output worksheets are divided into three main areas:
 
@@ -63,7 +65,7 @@ coverage universe of stocks is supported.
 
 .. figure:: sample.png
 
-    The generated Excel workboot with one sheet per ticker.
+    The generated Excel workbook with one sheet per ticker.
 
 Installation 
 ------------
