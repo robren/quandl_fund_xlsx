@@ -15,12 +15,19 @@ token!
 
 """
 
-from quandl_fund_xlsx import fundamentals as fun
 import pandas as pd
 import pytest
 import sys
 from mock import Mock
+import os
 
+
+# Grrr  overcoming python import drama!
+parentddir = os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir))
+sys.path.append(parentddir)
+
+
+from  quandl_fund_xlsx import fundamentals as fun
 
 @pytest.fixture
 def mock_SF0_fundamentals():
