@@ -1,4 +1,4 @@
-Welcome to quandl-xlsx-cli's documentation!
+Welcome to quandl_xlsx_cli's documentation!
 ===========================================
 
 Contents:

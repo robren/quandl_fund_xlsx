@@ -1,4 +1,4 @@
-* quandl-xlsx-cli version:
+* quandl_xlsx_cli version:
 * Python version:
 * Operating System:
 
