@@ -21,7 +21,6 @@ pytest==3.2.1
 python-dateutil==2.6.1
 pytz==2017.2
 Quandl==3.2.0
--e git+git@github.com:robren/quandl_fund_xlsx.git@6ce5e3fe21458e7eee717d55c0d212531caafb8d#egg=quandl_fund_xlsx
 requests==2.17.3
 six==1.10.0
 snowballstemmer==1.2.1
