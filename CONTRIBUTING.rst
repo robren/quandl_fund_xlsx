@@ -1,5 +1,7 @@
 .. highlight:: shell
 
+.. _ref-contributing:
+
 ============
 Contributing
 ============

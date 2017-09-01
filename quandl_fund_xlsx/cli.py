@@ -24,8 +24,6 @@ Options:
 # the imports have to be under the docstring
 # otherwise the docopt module does not work.
 from docopt import docopt
-#from .quandl_fund_xlsx import Fundamentals as Fund
-#from .quandl_fund_xlsx import stock_xlsx
 from .fundamentals import stock_xlsx
 
 
@@ -55,3 +53,7 @@ def main(args=None):
 
     print("Output will be written to {}".format(outfile))
     stock_xlsx(outfile, tickers, database, dimension, years)
+
+
+if __name__ == '__main__':
+    main()

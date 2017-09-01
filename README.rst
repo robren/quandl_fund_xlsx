@@ -36,17 +36,17 @@ Features
 For a given ticker, fundamental data is obtained using the Quandl API and the
 Sharadar Fundamentals database. This data is then used to calculate various
 useful, financial ratios. The ratios provide profitability indicators, a
-number of financial leverage indicators providing a sense of  the amount of
+number of financial leverage indicators providing a sense of the amount of
 debt a company has on it's balance sheet as well as its ability to service
 it's debt and pay a dividend.
 
-Some REIT specific ratios  such as FFO and AFFO are roughly approximated.
+Some REIT specific ratios  such as FFO and AFFO are very roughly approximated.
 These specific ratios are only roughly approximated since certain data, namely
 Real estate sales data for the period does not appear to be available via the
-API.
+API (It's often buried in the footnotes of these companies filings).
 
 
-Within each ticker's excel worksheets it's  divided into three main areas:
+The output excel worksheet for each ticker processed is divided into three main areas:
 
 - Quandl statement indicators. This is data obtained from the three main
   financial statements; the Income Statement, the Balance Sheet and the Cash Flow
@@ -73,15 +73,22 @@ universe of stocks is supported by the paid SF1 database.
 
     The generated Excel workbook with one sheet per ticker.
 
-Installation 
+Installation
 ------------
 
 .. code:: bash
 
     pip install quandl_fund_xlsx
 
-Usage:
-------
+Configuration
+-------------
+
+.. code:: bash
+
+    export QUANDL_API_KEY='YourQuandlAPIKey'
+
+Usage
+-----
 .. code:: bash
 
 	quandl_fund_xlsx -h
@@ -123,10 +130,43 @@ Usage:
 	total 12K
 	-rw-rw-r-- 1 test test 8.7K Aug 22 06:09 intc.xlsx
 
+Local Development
+-----------------
+
+It's recommended to setup a virtual environment and perform the installation
+within this. Use  pip to install the requirements but not the
+package.
+
+.. code:: bash
+
+    pip install -r requirements_dev.txt
+
+    # Run the CLI by running as a module
+    python -m quandl_fund_xlsx.cli -t MSFT
+
+    # Run the tests
+    pytest
+
+If you wish to install the package locally within either a virtualenv or
+globally this can be done once again using pip.
+
+.. code:: bash
+
+    pip install -e .
+
+    # Now the CLI is installed within our environment and should be on the
+    # path
+    quandl_fund_xlsx -t MSFT
+
+How to get help contribute or provide feedback
+----------------------------------------------
+
+See the :ref:`contribution submission and feedback guidelines <ref-contributing>`
+
 Credits
 ---------
 
-This packge was created with Cookiecutter_ and the `audreyr/cookiecutter-pypackage`_ project template.
+This package was created with Cookiecutter_ and the `audreyr/cookiecutter-pypackage`_ project template.
 
 .. _Cookiecutter: https://github.com/audreyr/cookiecutter
 .. _`audreyr/cookiecutter-pypackage`: https://github.com/audreyr/cookiecutter-pypackage
