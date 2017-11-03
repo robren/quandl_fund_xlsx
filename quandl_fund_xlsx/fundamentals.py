@@ -362,7 +362,8 @@ class Fundamentals(object):
                 qdframe = quandl.get(quandl_code, returns='pandas', rows=rows)
                 if first is True:
                     dframe = qdframe
-                    dframe.rename_axis({'Value': indicator}, inplace=True, axis='columns')
+                    #dframe.rename_axis({'Value': indicator}, inplace=True, axis='columns')
+                    dframe.rename(columns={'Value': indicator}, inplace=True)
                     first = False
                 else:
                     dframe[indicator] = qdframe['Value']
@@ -482,7 +483,9 @@ class SF1Fundamentals(Fundamentals):
     METRICS_AND_RATIOS_IND = [
         #    ('DE', 'Debt to Equity Ratio'), Needs to be locally calculated when
         #    using TTM figures
-        ('EVEBITDA', 'Enterprise Value divided by EBITDA'),
+        # EVEBITDA only calculated in MRT, so breaks when default of MRY is
+        # used
+        #('EVEBITDA', 'Enterprise Value divided by EBITDA'),
         ('PE', 'Price Earnings Damodaran: Market Cap / Net Income'),
         ('PS', 'Price Sales Damodaran: Market Cap / Revenue'),
         ('ASSETTURNOVER', 'Revenue / Assets average'),
@@ -496,9 +499,9 @@ class SF1Fundamentals(Fundamentals):
         #    ('ROIC', 'Return On Invested Capital')
     ]
 
-    # Locally calculated by this package codes. For each code there's a
-    # routine to calculate the ratio or metric from the quandl API provided
-    # values obtained using the codes above.
+    # Locally calculated by this package. For each ratio or metric in this
+    # table, there's a routine to calculate the value from the quandl API provided
+    # statement indicator value.
     CALCULATED_RATIOS = [
         ("debt_equity_ratio", 'Total Debt / Shareholders Equity'),
         ("debt_ebitda_ratio", 'Total Debt / EBITDA'),

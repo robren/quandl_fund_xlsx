@@ -4,7 +4,7 @@
 Usage:
   quandl_fund_xlsx (-i <ticker-file> | -t <ticker>) [-o <output-file>]
                                  [-y <years>] [-d <sharadar-db>]
-                                 [--dimension <dimension>]
+                                 
 
   quandl_fund_xlsx.py (-h | --help)
   quandl_fund_xlsx.py --version
@@ -17,7 +17,6 @@ Options:
   -y --years <years>    How many years of results (max 7 with SF0) [default: 5]
   -d --database <database>    Sharadar Fundamentals database to use, SFO or
                               SF1 [default: SF0]
-  --dimension <dimension>     Sharadar database dimension, MRY, MRT, ART [default: MRY]
   --version             Show version.
 
 """
@@ -49,7 +48,11 @@ def main(args=None):
 
     outfile = arguments['--output']
     database = arguments['--database']
-    dimension = arguments['--dimension']
+
+    if database == 'SF0': 
+        dimension = 'MRY' # Most recent year
+    elif database == 'SF1': 
+        dimension = 'MRT' # Most recent trailing 12 months
 
     print("Output will be written to {}".format(outfile))
     stock_xlsx(outfile, tickers, database, dimension, years)

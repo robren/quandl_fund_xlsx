@@ -23,9 +23,6 @@ Database to extract financial fundamentals, Sharadar provided ratios as
 well as calculate additional ratios.  Results are
 written to an Excel Workbook with a separate worksheet per ticker analysed.
 
-Read the file called LICENCE and pay special attention to the terms of the
-Apache 2.0 license.
-
 * Free software: Apache Software License 2.0
 * Documentation: https://quandl_fund_xlsx.readthedocs.io.
 
@@ -97,7 +94,6 @@ Usage
 	Usage:
 	quandl_fund_xlsx (-i <ticker-file> | -t <ticker>) [-o <output-file>]
 									[-y <years>] [-d <sharadar-db>]
-									[--dimension <dimension>]
 
 	quandl_fund_xlsx.py (-h | --help)
 	quandl_fund_xlsx.py --version
@@ -110,7 +106,6 @@ Usage
 	-y --years <years>    How many years of results (max 7 with SF0) [default: 5]
 	-d --database <database>    Sharadar Fundamentals database to use, SFO or
 								SF1 [default: SF0]
-	--dimension <dimension>     Sharadar database dimension, MRY, MRT, ART [default: MRY]
 	--version             Show version.
 
 
