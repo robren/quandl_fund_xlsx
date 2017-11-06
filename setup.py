@@ -43,7 +43,7 @@ setup(
     install_requires=requirements,
     license="Apache Software License 2.0",
     zip_safe=False,
-    keywords='quandl_fund_xlsx', 'quandl','finance'
+    keywords='quandl_fund_xlsx quandl finance',
     classifiers=[
         'Development Status :: 2 - Pre-Alpha',
         'Intended Audience :: Developers',
