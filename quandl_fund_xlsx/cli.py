@@ -27,7 +27,7 @@ from .fundamentals import stock_xlsx
 
 
 def main(args=None):
-    arguments = docopt(__doc__, version='0.1.4')
+    arguments = docopt(__doc__, version='0.1.5')
     print(arguments)
 
     file = arguments['--input']
