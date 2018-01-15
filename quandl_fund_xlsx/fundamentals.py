@@ -330,6 +330,20 @@ class Fundamentals(object):
                 self.cf_stmnt_df.loc['NCFDIV'] / self.i_stmnt_df.loc['NETINC']
             return
 
+        def _price_rough_ffo_ps_ratio():
+            self.calc_ratios_df.loc[ratio] = \
+                self.i_stmnt_df.loc['PRICE'] /  \
+                (self.calc_ratios_df.loc['rough_ffo'] / \
+                        self.bal_stmnt_df.loc['SHARESWA']) 
+            return
+
+        def _rough_ffo_ps():
+            self.calc_ratios_df.loc[ratio] = \
+                (self.calc_ratios_df.loc['rough_ffo'] / \
+                        self.bal_stmnt_df.loc['SHARESWA']) 
+
+            return
+
         switcher = {
             "debt_equity_ratio": _debt_equity_ratio,
             "debt_ebitda_ratio": _debt_ebitda_ratio,
@@ -343,7 +357,9 @@ class Fundamentals(object):
             "rough_affo": _rough_affo,
             "rough_ffo_dividend_payout_ratio": _rough_ffo_dividend_payout_ratio,
             "rough_affo_dividend_payout_ratio": _rough_affo_dividend_payout_ratio,
-            "income_dividend_payout_ratio": _income_dividend_payout_ratio
+            "income_dividend_payout_ratio": _income_dividend_payout_ratio,
+            "price_rough_ffo_ps_ratio": _price_rough_ffo_ps_ratio,
+            "rough_ffo_ps": _rough_ffo_ps
         }
 
         # Get the function from switcher dictionary
@@ -355,7 +371,11 @@ class Fundamentals(object):
         first = True
         dframe = None
         for indicator in ind.keys():
-            quandl_code = self.database + "/" + ticker + "_" + indicator + "_" + dimension
+            # Hack, make this more generic somehow
+            if indicator == 'PRICE' or indicator == 'SHARESBAS' :
+                quandl_code = self.database + "/" + ticker + "_" + indicator
+            else:
+                quandl_code = self.database + "/" + ticker + "_" + indicator + "_" + dimension
             logger.debug('_get_dataset_indicators: quandl_code to get = %s', quandl_code)
 
             try:
@@ -391,7 +411,9 @@ class SF0Fundamentals(Fundamentals):
         ('INTEXP', 'Interest Expense'),
         ('TAXEXP', 'Tax Expense'),
         ('EBIT', 'Earnings Before Interest and Taxes'),
-        ('NETINC', 'Net Income')
+        ('NETINC', 'Net Income'),
+        ('SHARESBAS', 'Shares Basic'),
+        ('DPS', 'Dividends per Basic Common Share')
     ]
 
     # Cash Flow Statement Indicator Quandl/Sharadar Codes
@@ -430,11 +452,11 @@ class SF0Fundamentals(Fundamentals):
         ("debt_to_total_capital", 'Total Debt / Invested Capital'),
         ("debt_to_ebitda", 'Total Debt / EBITDA'),
         ("return_on_invested_capital", 'Return on Invested Capital: EBIT / Invested Capital'),
-        ("rough_ffo", 'Rough FFO: Net Income plus depreciation; missing the cap gain from Real Estate sales adjust'),
-        ("rough_affo", 'Rough AFFO: Net Income plus depreciation minus capex; missing the cap gain from RE sales adjust'),
+        ("rough_ffo", 'Rough FFO: Net Income plus Depreciation (missing cap gain from RE sales adjust)'),
+        #("rough_affo", 'Rough AFFO: Net Income plus depreciation minus capex (missing the cap gain from RE sales adjust'),
         ('income_dividend_payout_ratio', 'Dividends / Net Income'),
         ('rough_ffo_dividend_payout_ratio', 'Dividends / rough_ffo'),
-        ('rough_affo_dividend_payout_ratio', 'Dividends / rough_affo')
+        #('rough_affo_dividend_payout_ratio', 'Dividends / rough_affo')
     ]
 
     def __init__(self, writer):
@@ -457,7 +479,10 @@ class SF1Fundamentals(Fundamentals):
         ('INTEXP', 'Interest Expense'),
         ('TAXEXP', 'Tax Expense'),
         ('EBIT', 'Earnings Before Interest and Taxes'),
-        ('NETINC', 'Net Income')
+        ('NETINC', 'Net Income'),
+        ('PRICE','Price per Share'),
+        ('SHARESBAS', 'Shares Basic'),
+        ('DPS', 'Dividends per Basic Common Share'),
     ]
 
     # Cash Flow Statement Indicator Quandl/Sharadar Codes
@@ -483,9 +508,8 @@ class SF1Fundamentals(Fundamentals):
     METRICS_AND_RATIOS_IND = [
         #    ('DE', 'Debt to Equity Ratio'), Needs to be locally calculated when
         #    using TTM figures
-        # EVEBITDA only calculated in MRT, so breaks when default of MRY is
-        # used
-        #('EVEBITDA', 'Enterprise Value divided by EBITDA'),
+        # EVEBITDA only returned for the MRT period, the default for SF1
+        ('EVEBITDA', 'Enterprise Value divided by EBITDA'),
         ('PE', 'Price Earnings Damodaran: Market Cap / Net Income'),
         ('PS', 'Price Sales Damodaran: Market Cap / Revenue'),
         ('ASSETTURNOVER', 'Revenue / Assets average'),
@@ -511,11 +535,16 @@ class SF1Fundamentals(Fundamentals):
         ("return_on_invested_capital", 'Return on Invested Capital: EBIT / Invested Capital'),
         ("debt_cfo_ratio", 'Total Debt / Cash Flow From Operations'),
         ("depreciation_cfo_ratio", 'Depreciation / Cash Flow From Operations'),
-        ("rough_ffo", 'Rough FFO: Net Income plus depreciation; missing the cap gain from Real Estate sales adjust'),
-        ("rough_affo", 'Rough AFFO: Net Income plus depreciation minus capex; missing the cap gain from RE sales adjust'),
+        ("rough_ffo", 'Rough FFO: Net Income plus Depreciation (missing cap gain from RE sales adjust)'),
+        # Do not present unless we can obtain sustaining Capex from the API.
+        # The overall CAPEX returned can be misleading, ie the number is too
+        # rough!
+        #("rough_affo", 'Rough AFFO: Net Income plus depreciation minus capex; missing the cap gain from RE sales adjust'),
         ('income_dividend_payout_ratio', 'Dividends / Net Income'),
         ('rough_ffo_dividend_payout_ratio', 'Dividends / rough_ffo'),
-        ('rough_affo_dividend_payout_ratio', 'Dividends / rough_affo')
+        #('rough_affo_dividend_payout_ratio', 'Dividends / rough_affo')
+        ('price_rough_ffo__ps_ratio', 'Price divided by rough_ffo_ps'),
+        ('rough_ffo_ps', 'Rough FFO per Share')
     ]
 
     def __init__(self, writer):

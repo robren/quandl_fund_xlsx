@@ -24,6 +24,7 @@ Options:
 # otherwise the docopt module does not work.
 from docopt import docopt
 from .fundamentals import stock_xlsx
+import sys
 
 
 def main(args=None):
@@ -53,6 +54,9 @@ def main(args=None):
         dimension = 'MRY' # Most recent year
     elif database == 'SF1': 
         dimension = 'MRT' # Most recent trailing 12 months
+    else:
+        print('Invalid database, use SF1 or SF0')
+        sys.exit()
 
     print("Output will be written to {}".format(outfile))
     stock_xlsx(outfile, tickers, database, dimension, years)
