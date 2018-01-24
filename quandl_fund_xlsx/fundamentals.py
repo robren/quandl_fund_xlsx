@@ -543,7 +543,7 @@ class SF1Fundamentals(Fundamentals):
         ('income_dividend_payout_ratio', 'Dividends / Net Income'),
         ('rough_ffo_dividend_payout_ratio', 'Dividends / rough_ffo'),
         #('rough_affo_dividend_payout_ratio', 'Dividends / rough_affo')
-        ('price_rough_ffo__ps_ratio', 'Price divided by rough_ffo_ps'),
+        ('price_rough_ffo_ps_ratio', 'Price divided by rough_ffo_ps'),
         ('rough_ffo_ps', 'Rough FFO per Share')
     ]
 
@@ -577,7 +577,7 @@ def stock_xlsx(outfile, stocks, database, dimension, periods):
 
         logger.info('Processing the stock %s', stock)
 
-        shtname = '{} Fundamentals'.format(stock)
+        shtname = '{}'.format(stock)
 
         try:
             i_stmnt_df = fund.get_indicators(stock, dimension, periods, "i_stmnt")
