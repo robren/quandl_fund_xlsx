@@ -379,11 +379,30 @@ class Fundamentals(object):
             logger.debug('_get_dataset_indicators: quandl_code to get = %s', quandl_code)
 
             try:
-                qdframe = quandl.get(quandl_code, returns='pandas', rows=rows)
+                #qdframe = quandl.get(quandl_code, returns='pandas', rows=rows)
+                qdframe = quandl.get_table(self.database, \
+                                    paginate = True, \
+                                    qopts =\
+                                    {"columns":[indicator,'datekey']),\
+                                    ticker=ticker, dimension=dimension}
+
+                # Now filter out the last 'rows' worth of data
+                qdframe = qdframe.tail(rows)
+
+                qdframe.set_index(inplace=True)
+
+                
+                # Should notneed to do any renaming  since we've now got one
+                # column named after the  indicator, e.g revenue and the index
+                # which is named datekey.
+
+                # So .... what do we want the index column to be named?
+                # do we need to change it here or is that done later ?
+
                 if first is True:
                     dframe = qdframe
                     #dframe.rename_axis({'Value': indicator}, inplace=True, axis='columns')
-                    dframe.rename(columns={'Value': indicator}, inplace=True)
+                    #dframe.rename(columns={'Value': indicator}, inplace=True)
                     first = False
                 else:
                     dframe[indicator] = qdframe['Value']
