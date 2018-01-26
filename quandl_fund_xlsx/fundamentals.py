@@ -47,7 +47,7 @@ class Fundamentals(object):
         else:
             quandl.ApiConfig.api_key = api_key.QUANDL_API_KEY
 
-        self.database = database
+        self.database = 'SHARADAR/' + database
         self.i_stmnt_ind_dict = collections.OrderedDict(i_ind)
         self.i_stmnt_df = None
         self.cf_stmnt_ind_dict = collections.OrderedDict(cf_ind)
@@ -371,41 +371,36 @@ class Fundamentals(object):
         first = True
         dframe = None
         for indicator in ind.keys():
-            # Hack, make this more generic somehow
-            if indicator == 'PRICE' or indicator == 'SHARESBAS' :
-                quandl_code = self.database + "/" + ticker + "_" + indicator
-            else:
-                quandl_code = self.database + "/" + ticker + "_" + indicator + "_" + dimension
-            logger.debug('_get_dataset_indicators: quandl_code to get = %s', quandl_code)
+            logger.debug('_get_dataset_indicators: db %s, ticker %s, indicator %s, dimension %s', self.database, ticker, indicator, dimension)
 
             try:
                 #qdframe = quandl.get(quandl_code, returns='pandas', rows=rows)
                 qdframe = quandl.get_table(self.database, \
                                     paginate = True, \
                                     qopts =\
-                                    {"columns":[indicator,'datekey']),\
-                                    ticker=ticker, dimension=dimension}
+                                    {"columns":[indicator,'datekey']},\
+                                    ticker=ticker, dimension=dimension)
 
                 # Now filter out the last 'rows' worth of data
                 qdframe = qdframe.tail(rows)
 
-                qdframe.set_index(inplace=True)
+                qdframe.set_index('datekey',inplace=True)
 
                 
-                # Should notneed to do any renaming  since we've now got one
-                # column named after the  indicator, e.g revenue and the index
-                # which is named datekey.
-
-                # So .... what do we want the index column to be named?
-                # do we need to change it here or is that done later ?
+                # We've now got one # column named after the indicator, 
+                # e.g revenue and the index which is named datekey.
 
                 if first is True:
-                    dframe = qdframe
-                    #dframe.rename_axis({'Value': indicator}, inplace=True, axis='columns')
-                    #dframe.rename(columns={'Value': indicator}, inplace=True)
+                    dframe = qdframe.copy()
+
+                    # The old API returned uppercase column names, this new
+                    # get_table form returns lowercase. So .. make em upper again to avoid
+                    # having to modify all existing strings.
+                    dframe.rename(columns={indicator.lower(): indicator.upper()},inplace=True)
                     first = False
                 else:
-                    dframe[indicator] = qdframe['Value']
+                    qdframe.rename(columns={indicator.lower(): indicator.upper()},inplace=True)
+                    dframe[indicator] = qdframe[indicator]
 
             except NotFoundError:
                 logger.warning('_get_dataset_indicators: The ticker %s '
