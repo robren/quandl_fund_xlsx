@@ -19,6 +19,7 @@ from quandl.errors.quandl_error import (
     NotFoundError)
 from xlsxwriter.utility import xl_range
 from . import api_key
+# from pdb import set_trace as bp
 
 # Added this one line below  to get logging from the requests module,
 # comment me out when done
@@ -244,7 +245,7 @@ class Fundamentals(object):
     def _calc_ratios(self, ratio):
         # Debt to Cash Flow From Operations
         def _debt_cfo_ratio():
-            logger.debug("_calc_ratios:DEBT= %s" % (self.bal_stmnt_df.loc['DEBT']))
+            logger.debug("_calc_ratios._debt_cfo_ratio: DEBT = %s" % (self.bal_stmnt_df.loc['DEBT']))
 
             self.calc_ratios_df.loc[ratio] = \
                 self.bal_stmnt_df.loc['DEBT']/self.cf_stmnt_df.loc['NCFO']
@@ -252,6 +253,9 @@ class Fundamentals(object):
 
         # Debt to Equity
         def _debt_equity_ratio():
+            logger.debug("_calc_ratios._debt_equity_ratio: DEBT = %s" % (self.bal_stmnt_df.loc['DEBT']))
+            logger.debug("_calc_ratios._debt_equity_ratio: EQUITY = %s" %
+                    (self.bal_stmnt_df.loc['EQUITY']))
             self.calc_ratios_df.loc[ratio] = \
                 self.bal_stmnt_df.loc['DEBT']/self.bal_stmnt_df.loc['EQUITY']
             return
@@ -376,11 +380,13 @@ class Fundamentals(object):
             try:
                 #qdframe = quandl.get(quandl_code, returns='pandas', rows=rows)
                 qdframe = quandl.get_table(self.database, \
-                                    paginate = True, \
+                                    #paginate = True, \
+                                    paginate = False, \
                                     qopts =\
                                     {"columns":[indicator,'datekey']},\
                                     ticker=ticker, dimension=dimension)
 
+                assert(len(qdframe.index)) > 0
                 # Now filter out the last 'rows' worth of data
                 qdframe = qdframe.tail(rows)
 
@@ -394,7 +400,8 @@ class Fundamentals(object):
                     dframe = qdframe.copy()
 
                     # The old API returned uppercase column names, this new
-                    # get_table form returns lowercase. So .. make em upper again to avoid
+                    # get_table form returns lowercase. 
+                    # So .. make em upper again to avoid
                     # having to modify all existing strings.
                     dframe.rename(columns={indicator.lower(): indicator.upper()},inplace=True)
                     first = False
