@@ -30,6 +30,7 @@ handler = logging.StreamHandler()
 formatter = logging.Formatter('%(asctime)s %(levelname)-8s %(message)s')
 handler.setFormatter(formatter)
 logger.addHandler(handler)
+
 logger.setLevel(logging.INFO)
 #logger.setLevel(logging.DEBUG)
 
@@ -378,24 +379,18 @@ class Fundamentals(object):
             logger.debug('_get_dataset_indicators: db %s, ticker %s, indicator %s, dimension %s', self.database, ticker, indicator, dimension)
 
             try:
-                #qdframe = quandl.get(quandl_code, returns='pandas', rows=rows)
                 qdframe = quandl.get_table(self.database, \
-                                    #paginate = True, \
-                                    paginate = False, \
+                                    paginate = True, \
+                                    #paginate = False, \
                                     qopts =\
                                     {"columns":[indicator,'datekey']},\
                                     ticker=ticker, dimension=dimension)
 
                 assert(len(qdframe.index)) > 0
-                # Now filter out the last 'rows' worth of data
-                qdframe = qdframe.tail(rows)
 
-                qdframe.set_index('datekey',inplace=True)
-
-                
-                # We've now got one # column named after the indicator, 
-                # e.g revenue and the index which is named datekey.
-
+                # We've now got one  column named after the indicator, 
+                # e.g revenue and a datekey column too 
+                # Create a copy of this quandle dataframe
                 if first is True:
                     dframe = qdframe.copy()
 
@@ -405,6 +400,8 @@ class Fundamentals(object):
                     # having to modify all existing strings.
                     dframe.rename(columns={indicator.lower(): indicator.upper()},inplace=True)
                     first = False
+                # Build up our dframe by copying the indicator column from the
+                # quandl dataframe.
                 else:
                     qdframe.rename(columns={indicator.lower(): indicator.upper()},inplace=True)
                     dframe[indicator] = qdframe[indicator]
@@ -415,8 +412,21 @@ class Fundamentals(object):
                                ticker, indicator, quandl_code)
                 raise
 
-        # Quandl returns the data set with the indicator as the column and separate
-        # rows for each date. So... transpose such that the indicators are the rows
+        #logger.debug("_get_dataset_indicators: dataframe = %s" % (dframe))
+        # It explicitly mentions in the API documentation that the values
+        # returned are not sorted.
+        # So .. sort our dataframe by the date
+        dframe = dframe.sort_values('datekey')
+        # Truncate to the desired number of periods
+        dframe = dframe.tail(rows)
+        #logger.debug("_get_dataset_indicators: dataframe aftrer sort and truncate = %s" % (dframe))
+
+        # We now have a bunch of indicator columns and a single datekey column 
+        # What we want is the data to have a set of date columns with
+        # indicators as each row.
+        # Make the datekey column the index.
+        dframe.set_index('datekey',inplace=True)
+        # So... transpose such that the indicator  columns  become the rows
         # and dates are the columns
         dframe = dframe.transpose()
         dframe.columns = dframe.columns.map(lambda t: t.strftime('%Y-%m-%d'))
@@ -433,6 +443,8 @@ class SF0Fundamentals(Fundamentals):
         ('TAXEXP', 'Tax Expense'),
         ('EBIT', 'Earnings Before Interest and Taxes'),
         ('NETINC', 'Net Income'),
+        ('EPS', 'Earnings Per Share '),
+        ('EPSDIL', 'Earnings Per Share Diluted '),
         ('SHARESBAS', 'Shares Basic'),
         ('DPS', 'Dividends per Basic Common Share')
     ]
@@ -501,6 +513,8 @@ class SF1Fundamentals(Fundamentals):
         ('TAXEXP', 'Tax Expense'),
         ('EBIT', 'Earnings Before Interest and Taxes'),
         ('NETINC', 'Net Income'),
+        ('EPS', 'Earnings Per Share '),
+        ('EPSDIL', 'Earnings Per Share Diluted '),
         ('PRICE','Price per Share'),
         ('SHARESBAS', 'Shares Basic'),
         ('DPS', 'Dividends per Basic Common Share'),
