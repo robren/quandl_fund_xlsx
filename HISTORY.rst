@@ -23,3 +23,12 @@ History
 * Fix to avoid the Pandas future warning about decrementing
   df.rename_axis and using df.rename
 
+0.1.6 (2018-01-26)
+-------------------
+Now uses the get_table methods from the quandl_api. 
+
+0.1.7 (2018-05-10)
+-------------------
+* Fix bug where the dataframe returned from quandl qas not being sorted
+* Added EPS and EPS diluted.
+
