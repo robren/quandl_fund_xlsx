@@ -156,7 +156,7 @@ globally this can be done once again using pip.
 How to get help contribute or provide feedback
 ----------------------------------------------
 
-See the :ref:`contribution submission and feedback guidelines <ref-contributing>`
+See the `contribution submission and feedback guidelines <ref-contributing>`
 
 Credits
 ---------
