@@ -49,7 +49,8 @@ class Fundamentals(object):
         else:
             quandl.ApiConfig.api_key = api_key.QUANDL_API_KEY
 
-        self.database = 'SHARADAR/' + database
+        #self.database = 'SHARADAR/' + database
+        self.database =  database
         self.i_stmnt_ind_dict = collections.OrderedDict(i_ind)
         self.i_stmnt_df = None
         self.cf_stmnt_ind_dict = collections.OrderedDict(cf_ind)
@@ -289,6 +290,7 @@ class Fundamentals(object):
             elif self.database == 'SF1':
                 self.calc_ratios_df.loc[ratio] = \
                     self.i_stmnt_df.loc['EBIT']/self.metrics_and_ratios_df.loc['INVCAPAVG'] * 100
+#        self.database =  database
 
         # Times Interest coverage aka fixed charge coverage Pg 278.
         # (Net Income + Income taxes + Interest Expense)/(Interest expense + Capitalized Interest)
@@ -375,11 +377,16 @@ class Fundamentals(object):
     def _get_dataset_indicators(self, ticker, ind, dimension, rows):
         first = True
         dframe = None
+        # With the API change, of early 2018  the SF0 and SF1 datasets 
+        # use the same  database code of SHARADAR/SF!. Different dimensions
+        # tickers supported apply between the free SF0 dataset and the paid
+        # SF1. Confirmed via # email from vincent at Sharadar.
+        database = 'SHARADAR/SF1' 
         for indicator in ind.keys():
             logger.debug('_get_dataset_indicators: db %s, ticker %s, indicator %s, dimension %s', self.database, ticker, indicator, dimension)
 
             try:
-                qdframe = quandl.get_table(self.database, \
+                qdframe = quandl.get_table(database, \
                                     paginate = True, \
                                     #paginate = False, \
                                     qopts =\
