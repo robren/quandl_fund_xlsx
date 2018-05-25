@@ -48,7 +48,7 @@ def test_fund_SF0_db_init():
                             engine='xlsxwriter',
                             date_format='d mmmm yyyy')
     f = fun.SF0Fundamentals(writer)
-    assert f.database == "SHARADAR/SF0"
+    assert f.database == "SF0"
 
 
 def test_fund_SF1_db_init():
@@ -57,4 +57,4 @@ def test_fund_SF1_db_init():
                             engine='xlsxwriter',
                             date_format='d mmmm yyyy')
     f = fun.SF1Fundamentals(writer)
-    assert f.database == "SHARADAR/SF1"
+    assert f.database == "SF1"

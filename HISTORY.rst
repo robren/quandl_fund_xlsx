@@ -32,3 +32,11 @@ Now uses the get_table methods from the quandl_api.
 * Fix bug where the dataframe returned from quandl qas not being sorted
 * Added EPS and EPS diluted.
 
+0.1.8 ( 2018-05-24)
+-------------------
+* Fix bug where the SF0 subscription data was not being returned.
+* With the discontinuation of the Sharadar Time series API at the end of March
+  2018, the codes for the free fundamental subscription SF0 database changed.
+  Subscribers to the SF0 data now use the SHARADAR/SF1 code in the get_table
+  accesses.
+    
