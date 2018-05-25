@@ -351,6 +351,11 @@ class Fundamentals(object):
 
             return
 
+        def _ev_opinc_ratio():
+            self.calc_ratios_df.loc[ratio] = \
+                self.metrics_and_ratios_df.loc['EV']/self.i_stmnt_df.loc['OPINC']
+            return
+
         switcher = {
             "debt_equity_ratio": _debt_equity_ratio,
             "debt_ebitda_ratio": _debt_ebitda_ratio,
@@ -366,7 +371,8 @@ class Fundamentals(object):
             "rough_affo_dividend_payout_ratio": _rough_affo_dividend_payout_ratio,
             "income_dividend_payout_ratio": _income_dividend_payout_ratio,
             "price_rough_ffo_ps_ratio": _price_rough_ffo_ps_ratio,
-            "rough_ffo_ps": _rough_ffo_ps
+            "rough_ffo_ps": _rough_ffo_ps,
+            "ev_opinc_ratio": _ev_opinc_ratio
         }
 
         # Get the function from switcher dictionary
@@ -518,6 +524,7 @@ class SF1Fundamentals(Fundamentals):
         ('REVENUE', 'Revenues'),
         ('INTEXP', 'Interest Expense'),
         ('TAXEXP', 'Tax Expense'),
+        ('OPINC', 'Operating Income'),
         ('EBIT', 'Earnings Before Interest and Taxes'),
         ('NETINC', 'Net Income'),
         ('EPS', 'Earnings Per Share '),
@@ -550,6 +557,7 @@ class SF1Fundamentals(Fundamentals):
     METRICS_AND_RATIOS_IND = [
         #    ('DE', 'Debt to Equity Ratio'), Needs to be locally calculated when
         #    using TTM figures
+        ('EV', 'Enterprise Value'),
         # EVEBITDA only returned for the MRT period, the default for SF1
         ('EVEBITDA', 'Enterprise Value divided by EBITDA'),
         ('PE', 'Price Earnings Damodaran: Market Cap / Net Income'),
@@ -569,6 +577,7 @@ class SF1Fundamentals(Fundamentals):
     # table, there's a routine to calculate the value from the quandl API provided
     # statement indicator value.
     CALCULATED_RATIOS = [
+        ("ev_opinc_ratio", 'Acquirers Multiple: Enterprise Value / Operating Income'),
         ("debt_equity_ratio", 'Total Debt / Shareholders Equity'),
         ("debt_ebitda_ratio", 'Total Debt / EBITDA'),
         ("ebit_interest_coverage", 'EBIT / Interest Expense'),
