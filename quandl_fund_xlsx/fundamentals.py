@@ -399,7 +399,7 @@ class Fundamentals(object):
                                     {"columns":[indicator,'datekey']},\
                                     ticker=ticker, dimension=dimension)
 
-                assert(len(qdframe.index)) > 0
+                assert len(qdframe.index) > 0, "Sharadar returning zero len table for ticker %r indicator %r" % (ticker, indicator)
 
                 # We've now got one  column named after the indicator, 
                 # e.g revenue and a datekey column too 
