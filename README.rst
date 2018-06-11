@@ -94,6 +94,7 @@ Usage
 	Usage:
 	quandl_fund_xlsx (-i <ticker-file> | -t <ticker>) [-o <output-file>]
 									[-y <years>] [-d <sharadar-db>]
+                                    [--dimension <dimension>]
 
 	quandl_fund_xlsx.py (-h | --help)
 	quandl_fund_xlsx.py --version
@@ -106,6 +107,7 @@ Usage
 	-y --years <years>    How many years of results (max 7 with SF0) [default: 5]
 	-d --database <database>    Sharadar Fundamentals database to use, SFO or
 								SF1 [default: SF0]
+    --dimension <dimension>     Sharadar database dimension, ARY, MRY, ART, MRT [default: MRY]
 	--version             Show version.
 
 
