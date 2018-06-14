@@ -39,4 +39,9 @@ Now uses the get_table methods from the quandl_api.
   2018, the codes for the free fundamental subscription SF0 database changed.
   Subscribers to the SF0 data now use the SHARADAR/SF1 code in the get_table
   accesses.
+
+0.1.9 ( 2018-06-11)
+-------------------
+* Added back support for the --dimension CLI option.
+
     
