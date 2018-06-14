@@ -6,7 +6,7 @@ for a stock potfolio.
 The results are saved in an excel workbook with one sheet per stock
 as well as a summary sheet
 
-:copyright: (c) 2017 by Robert Rennison
+:copyright: (c) 2018 by Robert Rennison
 :license: Apache 2, see LICENCE for more details
 
 """
@@ -261,6 +261,14 @@ class Fundamentals(object):
             self.calc_ratios_df.loc[ratio] = \
                 self.bal_stmnt_df.loc['DEBT']/self.bal_stmnt_df.loc['EQUITY']
             return
+        def _liabilities_equity_ratio():
+            logger.debug("_calc_ratios._liabilities_equity:_ratio LIABILITIES = %s" %
+                    (self.bal_stmnt_df.loc['LIABILITIES']))
+            logger.debug("_calc_ratios._liabilities_equity_ratio: EQUITY = %s" %
+                    (self.bal_stmnt_df.loc['EQUITY']))
+            self.calc_ratios_df.loc[ratio] = \
+                self.bal_stmnt_df.loc['LIABILITIES']/self.bal_stmnt_df.loc['EQUITY']
+            return
 
         # Debt to EBITDA
         def _debt_ebitda_ratio():
@@ -356,8 +364,44 @@ class Fundamentals(object):
                 self.metrics_and_ratios_df.loc['EV']/self.i_stmnt_df.loc['OPINC']
             return
 
+        # Kenneth Jeffrey Marshal, author of Good Stocks Cheap, definition
+        # of capital employed. He has two defnitions, one where cash is
+        # subtracted and one where it's not. Accrued expenses should be
+        # substracted but Is not available in the Sharadar API, probably a
+        # scour the footnotes thing if really wanted to include this.
+        def _kjm_capital_employed_1():
+            self.calc_ratios_df.loc[ratio] = \
+                self.bal_stmnt_df.loc['ASSETS'] - \
+                self.bal_stmnt_df.loc['CASHNEQUSD'] - \
+                self.bal_stmnt_df.loc['PAYABLES'] - \
+                self.bal_stmnt_df.loc['DEFERREDREV'] 
+            return
+
+        def _kjm_capital_employed_2():
+            self.calc_ratios_df.loc[ratio] = \
+                self.bal_stmnt_df.loc['ASSETS'] - \
+                self.bal_stmnt_df.loc['PAYABLES'] - \
+                self.bal_stmnt_df.loc['DEFERREDREV'] 
+                        
+            return
+
+        def _kjm_return_on_capital_employed_1():
+            self.calc_ratios_df.loc[ratio] = \
+                self.i_stmnt_df.loc['OPINC'] / self.calc_ratios_df.loc['kjm_capital_employed_1']  
+            return
+
+        def _kjm_return_on_capital_employed_2():
+            self.calc_ratios_df.loc[ratio] = \
+                self.i_stmnt_df.loc['OPINC'] / self.calc_ratios_df.loc['kjm_capital_employed_2']  
+            return
+
+        def _free_cash_flow_levered():
+            self.calc_ratios_df.loc[ratio] = \
+                self.metrics_and_ratios_df.loc['FCF'] - self.i_stmnt_df.loc['INTEXP']
+
         switcher = {
             "debt_equity_ratio": _debt_equity_ratio,
+            "liabilities_equity_ratio": _liabilities_equity_ratio,
             "debt_ebitda_ratio": _debt_ebitda_ratio,
             "debt_to_total_capital": _debt_to_total_capital,
             "return_on_invested_capital": _roic,
@@ -372,7 +416,12 @@ class Fundamentals(object):
             "income_dividend_payout_ratio": _income_dividend_payout_ratio,
             "price_rough_ffo_ps_ratio": _price_rough_ffo_ps_ratio,
             "rough_ffo_ps": _rough_ffo_ps,
-            "ev_opinc_ratio": _ev_opinc_ratio
+            "ev_opinc_ratio": _ev_opinc_ratio,
+            "kjm_capital_employed_1": _kjm_capital_employed_1,
+            "kjm_capital_employed_2": _kjm_capital_employed_2,
+            "kjm_return_on_capital_employed_1": _kjm_return_on_capital_employed_1,
+            "kjm_return_on_capital_employed_2": _kjm_return_on_capital_employed_2,
+            "free_cash_flow_levered": _free_cash_flow_levered
         }
 
         # Get the function from switcher dictionary
@@ -473,6 +522,7 @@ class SF0Fundamentals(Fundamentals):
 
     # Balance Statement Indicator Quandl/Sharadar Codes
     BAL_STMNT_IND = [
+        ('ASSETS', 'Total Assets'),
         ('DEBT', 'Total Debt'),
         ('LIABILITIES', 'Total Liabilities'),
         ('EQUITY', 'Shareholders Equity'),
@@ -527,10 +577,9 @@ class SF1Fundamentals(Fundamentals):
         ('OPINC', 'Operating Income'),
         ('EBIT', 'Earnings Before Interest and Taxes'),
         ('NETINC', 'Net Income'),
-        ('EPS', 'Earnings Per Share '),
         ('EPSDIL', 'Earnings Per Share Diluted '),
         ('PRICE','Price per Share'),
-        ('SHARESBAS', 'Shares Basic'),
+        ('SHARESWADIL', 'Weighted Average Shares Diluted'),
         ('DPS', 'Dividends per Basic Common Share'),
     ]
 
@@ -545,8 +594,14 @@ class SF1Fundamentals(Fundamentals):
 
     # Balance Statement Indicator Quandl/Sharadar Codes
     BAL_STMNT_IND = [
+        ('ASSETS', 'Total Assets'),
+        ('ASSETSNC', 'Non Current Assets'),
+        ('CASHNEQUSD', 'Cash and Equivalents (USD)'),
+        ('DEFERREDREV', 'Deferred Revenue'),
+        ('INTANGIBLES', 'Intangibles'),
         ('DEBT', 'Total Debt'),
         ('LIABILITIES', 'Total Liabilities'),
+        ('LIABILITIESC', 'Current Liabilities'),
         ('PAYABLES', 'Trade and Non Trade Payables'),
         ('RECEIVABLES', 'Trade and Non Trade Receivables'),
         ('RETEARN', 'Retained Earnings'),
@@ -570,7 +625,7 @@ class SF1Fundamentals(Fundamentals):
         ('EBITDA', 'Earnings Before Interest Taxes & Depreciation & Amortization'),
         ('FCF', 'Free Cash Flow'),
         ('INVCAPAVG', 'Invested Capital'),
-        #    ('ROIC', 'Return On Invested Capital')
+        ('ROIC', 'Return On Invested Capital')
     ]
 
     # Locally calculated by this package. For each ratio or metric in this
@@ -578,12 +633,18 @@ class SF1Fundamentals(Fundamentals):
     # statement indicator value.
     CALCULATED_RATIOS = [
         ("ev_opinc_ratio", 'Acquirers Multiple: Enterprise Value / Operating Income'),
-        ("debt_equity_ratio", 'Total Debt / Shareholders Equity'),
         ("debt_ebitda_ratio", 'Total Debt / EBITDA'),
+        ("debt_equity_ratio", 'Total Debt / Shareholders Equity'),
+        ("liabilities_equity_ratio", 'Total Liabilities / Shareholders Equity'),
         ("ebit_interest_coverage", 'EBIT / Interest Expense'),
         ("ebitda_interest_coverage", 'EBITDA / Interest Expense'),
         ("debt_to_total_capital", 'Total Debt / Invested Capital'),
         ("return_on_invested_capital", 'Return on Invested Capital: EBIT / Invested Capital'),
+        ("kjm_capital_employed_1", 'Kenneth J  Marshal Capital Employed Subtract CASH'),
+        ("kjm_capital_employed_2", 'Kenneth J  Marshal Capital Employed'),
+        ("kjm_return_on_capital_employed_1", 'KJM Return on Capital Employed subtract CASH'),
+        ("kjm_return_on_capital_employed_2", 'KJM Return on Capital Employed'),
+        ("free_cash_flow_levered", 'FCF-Levered: FCF - Interest Expenses'),
         ("debt_cfo_ratio", 'Total Debt / Cash Flow From Operations'),
         ("depreciation_cfo_ratio", 'Depreciation / Cash Flow From Operations'),
         ("rough_ffo", 'Rough FFO: Net Income plus Depreciation (missing cap gain from RE sales adjust)'),
