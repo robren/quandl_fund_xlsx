@@ -230,7 +230,7 @@ class Fundamentals(object):
 
         for spark_row in range(start_row, start_row + rows_written):
             numeric_data_row_range = xl_range(spark_row, col + num_text_cols,
-                                              spark_row, col + num_cols)
+                                              spark_row, col + cagr_col -1)
             worksheet.add_sparkline(spark_row, spark_col, {'range': numeric_data_row_range,
                                                             'markers': 'True'})
             
