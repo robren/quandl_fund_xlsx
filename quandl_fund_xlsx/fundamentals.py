@@ -18,6 +18,7 @@ import quandl
 from quandl.errors.quandl_error import (
     NotFoundError)
 from xlsxwriter.utility import xl_range
+from xlsxwriter.utility import xl_rowcol_to_cell 
 from . import api_key
 # from pdb import set_trace as bp
 
@@ -186,8 +187,9 @@ class Fundamentals(object):
         worksheet = self.writer.sheets[sheetname]
         rows_written = len(dframe.index)
 
-        # Format the text columns and the numeric ones following these.
         num_cols = len(dframe.columns.values)
+
+        # Format the text columns and the numeric ones following these.
         worksheet.set_column(0, num_text_cols - 1, 40, self.format_justify)
         worksheet.set_column(num_text_cols, num_cols, 16, self.format_justify)
 
@@ -207,20 +209,37 @@ class Fundamentals(object):
             'maximum': 100,
             'format': self.format_commas_2dec
         })
+
+        # Lets figure out CAGR for a given row item
+        num_numeric_cols = num_cols - num_text_cols
+        cagr_col = col + num_cols
+        begin_cagr_calc_col = num_text_cols
+        end_cagr_calc_col = cagr_col -1
+        for cagr_row in range(start_row, start_row + rows_written):
+            # looks like I'll need to use  xl_rowcol_to_cell()
+            beg_val = xl_rowcol_to_cell(cagr_row,begin_cagr_calc_col)
+            end_val = xl_rowcol_to_cell(cagr_row,end_cagr_calc_col)
+            years = end_cagr_calc_col - begin_cagr_calc_col + 1
+            formula = '=({end_val}/{beg_val})^(1/{years}) - 1'.format(beg_val=beg_val,end_val=end_val,years=years)
+            worksheet.write(cagr_row, cagr_col,formula)
+
+
         # Sparklines make data trends easily visible
-        spark_col = col + num_cols
+        spark_col = cagr_col + 1
         worksheet.set_column(spark_col, spark_col, 20)
 
         for spark_row in range(start_row, start_row + rows_written):
             numeric_data_row_range = xl_range(spark_row, col + num_text_cols,
                                               spark_row, col + num_cols)
             worksheet.add_sparkline(spark_row, spark_col, {'range': numeric_data_row_range,
-                                                           'markers': 'True'})
+                                                            'markers': 'True'})
+            
+
         if use_header is True:
             for column, hdr in zip(range(col, num_cols + col), dframe.columns.values.tolist()):
                 worksheet.write_string(row, column, hdr, self.format_bold)
-            rows_written += 1
 
+        rows_written += 1
         return rows_written
 
     def get_calc_ratios(self):
