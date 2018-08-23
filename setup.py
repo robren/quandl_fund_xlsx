@@ -23,7 +23,7 @@ test_requirements = [
 
 setup(
     name='quandl_fund_xlsx',
-    version='0.1.8',
+    version='0.1.9',
     description="A CLI tool which uses the Quandl Fundmentals API and writes results to Excel Spreadsheets.",
     long_description=readme + '\n\n' + history,
     author="Robert Rennison",
