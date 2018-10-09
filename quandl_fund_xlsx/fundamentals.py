@@ -301,6 +301,11 @@ class Fundamentals(object):
                 self.cf_stmnt_df.loc['DEPAMOR']/self.cf_stmnt_df.loc['NCFO']
             return
 
+        def _depreciation_revenue_ratio():
+            self.calc_ratios_df.loc[ratio] = \
+                self.cf_stmnt_df.loc['DEPAMOR']/self.i_stmnt_df.loc['REVENUE']
+            return
+
         def _debt_to_total_capital():
             if self.database == 'SF0':
                 self.calc_ratios_df.loc[ratio] = \
@@ -417,6 +422,33 @@ class Fundamentals(object):
         def _free_cash_flow_levered():
             self.calc_ratios_df.loc[ratio] = \
                 self.metrics_and_ratios_df.loc['FCF'] - self.i_stmnt_df.loc['INTEXP']
+            return
+
+        def _dividends_free_cash_flow_levered_ratio():
+            self.calc_ratios_df.loc[ratio] = \
+                self.cf_stmnt_df.loc['NCFDIV'] / self.calc_ratios_df.loc['free_cash_flow_levered'] 
+            return
+
+        def _operating_margin():
+            self.calc_ratios_df.loc[ratio] = \
+                self.i_stmnt_df.loc['OPINC']/self.i_stmnt_df.loc['REVENUE']
+            return
+
+        def _sg_and_a_gross_profit_ratio():
+            self.calc_ratios_df.loc[ratio] = \
+                self.i_stmnt_df.loc['SGNA'] / self.i_stmnt_df.loc['GP']
+            return
+
+        def _ltdebt_cfo_ratio():
+            self.calc_ratios_df.loc[ratio] = \
+                self.bal_stmnt_df.loc['LIABILITIESNC'] / self.cf_stmnt_df.loc['NCFO']
+            return
+
+        def _ltdebt_earnings_ratio():
+            self.calc_ratios_df.loc[ratio] = \
+                self.bal_stmnt_df.loc['LIABILITIESNC'] / self.i_stmnt_df.loc['NETINC']
+            return
+
 
         switcher = {
             "debt_equity_ratio": _debt_equity_ratio,
@@ -428,6 +460,7 @@ class Fundamentals(object):
             "ebitda_interest_coverage": _ebitda_interest_coverage,
             "debt_cfo_ratio": _debt_cfo_ratio,
             "depreciation_cfo_ratio": _depreciation_cfo_ratio,
+            "depreciation_revenue_ratio": _depreciation_revenue_ratio,
             "rough_ffo": _rough_ffo,
             "rough_affo": _rough_affo,
             "rough_ffo_dividend_payout_ratio": _rough_ffo_dividend_payout_ratio,
@@ -440,7 +473,12 @@ class Fundamentals(object):
             "kjm_capital_employed_2": _kjm_capital_employed_2,
             "kjm_return_on_capital_employed_1": _kjm_return_on_capital_employed_1,
             "kjm_return_on_capital_employed_2": _kjm_return_on_capital_employed_2,
-            "free_cash_flow_levered": _free_cash_flow_levered
+            "free_cash_flow_levered": _free_cash_flow_levered,
+            "dividends_free_cash_flow_levered_ratio" : _dividends_free_cash_flow_levered_ratio,
+            "operating_margin": _operating_margin,
+            "sg_and_a_gross_profit_ratio": _sg_and_a_gross_profit_ratio,
+            "ltdebt_cfo_ratio": _ltdebt_cfo_ratio,
+            "ltdebt_earnings_ratio": _ltdebt_earnings_ratio
         }
 
         # Get the function from switcher dictionary
@@ -520,6 +558,7 @@ class SF0Fundamentals(Fundamentals):
     # Income Statement Indicator Quandl/Sharadar Codes
     I_STMNT_IND = [
         ('REVENUE', 'Revenues'),
+        ('GP', 'Gross Profit'),
         ('INTEXP', 'Interest Expense'),
         ('TAXEXP', 'Tax Expense'),
         ('EBIT', 'Earnings Before Interest and Taxes'),
@@ -591,6 +630,8 @@ class SF1Fundamentals(Fundamentals):
     # Income Statement Indicator Quandl/Sharadar Codes
     I_STMNT_IND = [
         ('REVENUE', 'Revenues'),
+        ('GP', 'Gross Profit'),
+        ('SGNA', 'Sales General and Admin'),
         ('INTEXP', 'Interest Expense'),
         ('TAXEXP', 'Tax Expense'),
         ('OPINC', 'Operating Income'),
@@ -621,6 +662,7 @@ class SF1Fundamentals(Fundamentals):
         ('DEBT', 'Total Debt'),
         ('LIABILITIES', 'Total Liabilities'),
         ('LIABILITIESC', 'Current Liabilities'),
+        ('LIABILITIESNC', 'Non Current Liabilities'),
         ('PAYABLES', 'Trade and Non Trade Payables'),
         ('RECEIVABLES', 'Trade and Non Trade Receivables'),
         ('RETEARN', 'Retained Earnings'),
@@ -637,20 +679,25 @@ class SF1Fundamentals(Fundamentals):
         ('PE', 'Price Earnings Damodaran: Market Cap / Net Income'),
         ('PS', 'Price Sales Damodaran: Market Cap / Revenue'),
         ('ASSETTURNOVER', 'Revenue / Assets average'),
-        ('GROSSMARGIN', 'Gross Margin: Gross Profit/ Revenue'),
         ('ROA', 'Return on Assets: Net Income / Average Assets'),
         ('ROE', 'Return on Equity: Net Income / Average Equity'),
         ('ROS', 'Return on Sales: EBIT / Revenue'),
         ('EBITDA', 'Earnings Before Interest Taxes & Depreciation & Amortization'),
         ('FCF', 'Free Cash Flow'),
         ('INVCAPAVG', 'Invested Capital'),
-        ('ROIC', 'Return On Invested Capital')
+        ('ROIC', 'Return On Invested Capital'),
+        ('GROSSMARGIN', 'Gross Margin: Gross Profit/ Revenue'),
+        ('NETMARGIN', 'Net Margin: Net Income/ Revenue')
     ]
 
     # Locally calculated by this package. For each ratio or metric in this
     # table, there's a routine to calculate the value from the quandl API provided
     # statement indicator value.
     CALCULATED_RATIOS = [
+        ("operating_margin", 'Operating Margin: (Gross Profit - Opex)/ Revenue'),
+        ("sg_and_a_gross_profit_ratio", 'SG&A to Gross Profit Ratio'),
+        ("depreciation_revenue_ratio", 'Depreciation / Revenue '),
+        ("depreciation_cfo_ratio", 'Depreciation / Cash Flow From Operations'),
         ("ev_opinc_ratio", 'Acquirers Multiple: Enterprise Value / Operating Income'),
         ("debt_ebitda_ratio", 'Total Debt / EBITDA'),
         ("debt_equity_ratio", 'Total Debt / Shareholders Equity'),
@@ -665,7 +712,8 @@ class SF1Fundamentals(Fundamentals):
         ("kjm_return_on_capital_employed_2", 'KJM Return on Capital Employed'),
         ("free_cash_flow_levered", 'FCF-Levered: FCF - Interest Expenses'),
         ("debt_cfo_ratio", 'Total Debt / Cash Flow From Operations'),
-        ("depreciation_cfo_ratio", 'Depreciation / Cash Flow From Operations'),
+        ("ltdebt_cfo_ratio", 'Long Term Debt / Cash Flow From Operations'),
+        ("ltdebt_earnings_ratio", 'Long Term Debt / Income'),
         ("rough_ffo", 'Rough FFO: Net Income plus Depreciation (missing cap gain from RE sales adjust)'),
         # Do not present unless we can obtain sustaining Capex from the API.
         # The overall CAPEX returned can be misleading, ie the number is too
@@ -675,7 +723,8 @@ class SF1Fundamentals(Fundamentals):
         ('rough_ffo_dividend_payout_ratio', 'Dividends / rough_ffo'),
         #('rough_affo_dividend_payout_ratio', 'Dividends / rough_affo')
         ('price_rough_ffo_ps_ratio', 'Price divided by rough_ffo_ps'),
-        ('rough_ffo_ps', 'Rough FFO per Share')
+        ('rough_ffo_ps', 'Rough FFO per Share'),
+        ('dividends_free_cash_flow_levered_ratio', 'Dividends/Levered FCF')
     ]
 
     def __init__(self, writer):
