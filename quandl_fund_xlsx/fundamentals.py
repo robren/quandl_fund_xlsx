@@ -449,6 +449,12 @@ class Fundamentals(object):
                 self.bal_stmnt_df.loc['LIABILITIESNC'] / self.i_stmnt_df.loc['NETINC']
             return
 
+        def _free_cash_flow_conversion_ratio():
+            self.calc_ratios_df.loc[ratio] = \
+                self.metrics_and_ratios_df.loc['FCF'] / self.metrics_and_ratios_df.loc['EBITDA']
+            return
+
+
 
         switcher = {
             "debt_equity_ratio": _debt_equity_ratio,
@@ -478,7 +484,8 @@ class Fundamentals(object):
             "operating_margin": _operating_margin,
             "sg_and_a_gross_profit_ratio": _sg_and_a_gross_profit_ratio,
             "ltdebt_cfo_ratio": _ltdebt_cfo_ratio,
-            "ltdebt_earnings_ratio": _ltdebt_earnings_ratio
+            "ltdebt_earnings_ratio": _ltdebt_earnings_ratio,
+            "free_cash_flow_conversion_ratio": _free_cash_flow_conversion_ratio
         }
 
         # Get the function from switcher dictionary
@@ -724,7 +731,8 @@ class SF1Fundamentals(Fundamentals):
         #('rough_affo_dividend_payout_ratio', 'Dividends / rough_affo')
         ('price_rough_ffo_ps_ratio', 'Price divided by rough_ffo_ps'),
         ('rough_ffo_ps', 'Rough FFO per Share'),
-        ('dividends_free_cash_flow_levered_ratio', 'Dividends/Levered FCF')
+        ('dividends_free_cash_flow_levered_ratio', 'Dividends/Levered FCF'),
+        ('free_cash_flow_conversion_ratio', 'Free CashFlow Conversion Ratio')
     ]
 
     def __init__(self, writer):
