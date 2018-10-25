@@ -295,6 +295,32 @@ class Fundamentals(object):
                 self.bal_stmnt_df.loc['DEBT']/self.metrics_and_ratios_df.loc['EBITDA']
             return
 
+        # Debt to EBITDA minus CapEx
+        def _debt_ebitda_minus_capex_ratio():
+
+            # CAPEX is returned from Sharadar as a -ve number, hence we need to add this to
+            # subtract CAPEX
+            self.calc_ratios_df.loc[ratio] = \
+                self.bal_stmnt_df.loc['DEBT']/ \
+                (self.metrics_and_ratios_df.loc['EBITDA'] + self.cf_stmnt_df.loc['CAPEX'])
+            return
+
+        # Net Debt to EBITDA
+        def _net_debt_ebitda_ratio():
+            self.calc_ratios_df.loc[ratio] = \
+                (self.bal_stmnt_df.loc['DEBT'] - self.bal_stmnt_df.loc['CASHNEQUSD']) / self.metrics_and_ratios_df.loc['EBITDA']
+            return
+
+        # Net Debt to EBITDA minus CapEx
+        def _net_debt_ebitda_minus_capex_ratio():
+            # CAPEX is returned from Sharadar as a -ve number, hence we need to add this to
+            # subtract CAPEX
+            self.calc_ratios_df.loc[ratio] = \
+                (self.bal_stmnt_df.loc['DEBT'] - self.bal_stmnt_df.loc['CASHNEQUSD']) /  \
+                (self.metrics_and_ratios_df.loc['EBITDA'] + self.cf_stmnt_df.loc['CAPEX'])
+            return
+
+
         # Depreciation to Cash Flow From Operations Pg 278.
         def _depreciation_cfo_ratio():
             self.calc_ratios_df.loc[ratio] = \
@@ -460,6 +486,9 @@ class Fundamentals(object):
             "debt_equity_ratio": _debt_equity_ratio,
             "liabilities_equity_ratio": _liabilities_equity_ratio,
             "debt_ebitda_ratio": _debt_ebitda_ratio,
+            "debt_ebitda_minus_capex_ratio": _debt_ebitda_minus_capex_ratio,
+            "net_debt_ebitda_ratio": _net_debt_ebitda_ratio,
+            "net_debt_ebitda_minus_capex_ratio": _net_debt_ebitda_minus_capex_ratio,
             "debt_to_total_capital": _debt_to_total_capital,
             "return_on_invested_capital": _roic,
             "ebit_interest_coverage": _ebit_interest_coverage,
@@ -707,6 +736,9 @@ class SF1Fundamentals(Fundamentals):
         ("depreciation_cfo_ratio", 'Depreciation / Cash Flow From Operations'),
         ("ev_opinc_ratio", 'Acquirers Multiple: Enterprise Value / Operating Income'),
         ("debt_ebitda_ratio", 'Total Debt / EBITDA'),
+        ("debt_ebitda_minus_capex_ratio", 'Total Debt / (EBITDA - CapEx)'),
+        ("net_debt_ebitda_ratio", 'Net Debt / EBITDA'),
+        ("net_debt_ebitda_minus_capex_ratio", 'Net Debt / (EBITDA - CapEx)'),
         ("debt_equity_ratio", 'Total Debt / Shareholders Equity'),
         ("liabilities_equity_ratio", 'Total Liabilities / Shareholders Equity'),
         ("ebit_interest_coverage", 'EBIT / Interest Expense'),
