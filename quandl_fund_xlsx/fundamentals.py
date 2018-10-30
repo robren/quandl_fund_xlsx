@@ -467,12 +467,12 @@ class Fundamentals(object):
 
         def _ltdebt_cfo_ratio():
             self.calc_ratios_df.loc[ratio] = \
-                self.bal_stmnt_df.loc['LIABILITIESNC'] / self.cf_stmnt_df.loc['NCFO']
+                self.bal_stmnt_df.loc['DEBTNC'] / self.cf_stmnt_df.loc['NCFO']
             return
 
         def _ltdebt_earnings_ratio():
             self.calc_ratios_df.loc[ratio] = \
-                self.bal_stmnt_df.loc['LIABILITIESNC'] / self.i_stmnt_df.loc['NETINC']
+                self.bal_stmnt_df.loc['DEBTNC'] / self.i_stmnt_df.loc['NETINC']
             return
 
         def _free_cash_flow_conversion_ratio():
@@ -696,9 +696,8 @@ class SF1Fundamentals(Fundamentals):
         ('DEFERREDREV', 'Deferred Revenue'),
         ('INTANGIBLES', 'Intangibles'),
         ('DEBT', 'Total Debt'),
+        ('DEBTNC', 'Long Term  Debt'),
         ('LIABILITIES', 'Total Liabilities'),
-        ('LIABILITIESC', 'Current Liabilities'),
-        ('LIABILITIESNC', 'Non Current Liabilities'),
         ('PAYABLES', 'Trade and Non Trade Payables'),
         ('RECEIVABLES', 'Trade and Non Trade Receivables'),
         ('RETEARN', 'Retained Earnings'),
