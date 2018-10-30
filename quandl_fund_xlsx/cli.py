@@ -17,7 +17,7 @@ Options:
   -o --output <file>    Output file [default: stocks.xlsx]
   -y --years <years>    How many years of results (max 7 with SF0) [default: 5]
   -d --database <database>    Sharadar Fundamentals database to use, SFO or
-                              SF1 [default: SF0]
+                              SF1 [default: SF1]
   --dimension <dimension>     Sharadar database dimension, ARY, MRY, ART, MRT [default: MRY]
 
   --version             Show version.

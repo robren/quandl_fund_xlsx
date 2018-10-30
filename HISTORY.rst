@@ -44,4 +44,12 @@ Now uses the get_table methods from the quandl_api.
 -------------------
 * Added back support for the --dimension CLI option.
 
-    
+0.1.10 (2018-10-29)    
+-------------------
+* Added some  new Cash Flow related ratios and corrected the LTDEBT ratios
+* Changed the default to be the paid SF1 Database as this is the one I'm using
+  and testing. Requires a separate free SF0 subscription to test SFO. All of
+  the API calls whether the user has an SFI paid membership or SF0 use the
+  SF1 codes.
+
+
