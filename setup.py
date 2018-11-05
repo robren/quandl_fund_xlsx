@@ -24,7 +24,7 @@ test_requirements = [
 setup(
     name='quandl_fund_xlsx',
     version='0.1.10',
-    description="A CLI tool which uses the Quandl Fundmentals API and writes results to Excel Spreadsheets.",
+    description="A CLI tool using the Quandl API and the Sharadar Fundamentals database.",
     long_description=readme + '\n\n' + history,
     author="Robert Rennison",
     author_email='rob@robren.net',

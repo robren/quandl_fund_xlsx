@@ -45,10 +45,16 @@ class Fundamentals(object):
                  metrics_and_ratios_ind,
                  calc_ratios,
                  writer):
-        if "QUANDL_API_KEY" in os.environ:
-            quandl.ApiConfig.api_key = os.environ['QUANDL_API_KEY']
-        else:
-            quandl.ApiConfig.api_key = api_key.QUANDL_API_KEY
+        if (database == 'SF0') :
+            if "QUANDL_API_SF0_KEY" in os.environ:
+                quandl.ApiConfig.api_key = os.environ['QUANDL_API_SF0_KEY']
+            else:
+                quandl.ApiConfig.api_key = api_key.QUANDL_API_KEY
+        elif (database == 'SF1') :
+            if "QUANDL_API_SF1_KEY" in os.environ:
+                quandl.ApiConfig.api_key = os.environ['QUANDL_API_SF1_KEY']
+            else:
+                quandl.ApiConfig.api_key = api_key.QUANDL_API_KEY
 
         #self.database = 'SHARADAR/' + database
         self.database =  database
@@ -599,10 +605,12 @@ class SF0Fundamentals(Fundamentals):
         ('TAXEXP', 'Tax Expense'),
         ('EBIT', 'Earnings Before Interest and Taxes'),
         ('NETINC', 'Net Income'),
+        ('NETINCCMN', 'Net Income to Common (after prefs paid'),
         ('EPS', 'Earnings Per Share '),
         ('EPSDIL', 'Earnings Per Share Diluted '),
         ('SHARESBAS', 'Shares Basic'),
-        ('DPS', 'Dividends per Basic Common Share')
+        ('DPS', 'Dividends per Basic Common Share'),
+        ('PREFDIVIS', "Preferred Dividends per Basic Common Share")
     ]
 
     # Cash Flow Statement Indicator Quandl/Sharadar Codes
@@ -673,10 +681,12 @@ class SF1Fundamentals(Fundamentals):
         ('OPINC', 'Operating Income'),
         ('EBIT', 'Earnings Before Interest and Taxes'),
         ('NETINC', 'Net Income'),
+        ('NETINCCMN', 'Net Income to Common (after prefs paid'),
         ('EPSDIL', 'Earnings Per Share Diluted '),
         ('PRICE','Price per Share'),
         ('SHARESWADIL', 'Weighted Average Shares Diluted'),
         ('DPS', 'Dividends per Basic Common Share'),
+        ('PREFDIVIS', "Preferred Dividends per Basic Common Share"),
     ]
 
     # Cash Flow Statement Indicator Quandl/Sharadar Codes
@@ -816,7 +826,7 @@ def stock_xlsx(outfile, stocks, database, dimension, periods):
         i_stmnt_df.insert(0, 'Description', description_s)
         # Create a new column using the values from the index, similar to doing a .reset_index
         # but uses an explicit column instead of column 0  which  reset-index  does.
-        i_stmnt_df.insert(1, 'Quandl Fundamental Indicators' + ' ' + dimension, i_stmnt_df.index)
+        i_stmnt_df.insert(1, 'Sharadar Fundamental Indicators' + ' ' + dimension, i_stmnt_df.index)
 
         rows_written = fund.write_df_to_excel_sheet(i_stmnt_df, row, col,
                                                     shtname, use_header=True)
@@ -825,7 +835,7 @@ def stock_xlsx(outfile, stocks, database, dimension, periods):
         cf_stmnt_df = fund.get_indicators(stock, dimension, periods, "cf_stmnt")
         description_s = pd.Series(fund.cf_stmnt_ind_dict)
         cf_stmnt_df.insert(0, 'Description', description_s)
-        cf_stmnt_df.insert(1, 'Quandl Fundamental Indicators', cf_stmnt_df.index)
+        cf_stmnt_df.insert(1, 'Sharadar Fundamental Indicators', cf_stmnt_df.index)
         rows_written = fund.write_df_to_excel_sheet(cf_stmnt_df, row, col,
                                                     shtname, use_header=False)
         row = row + rows_written
@@ -833,7 +843,7 @@ def stock_xlsx(outfile, stocks, database, dimension, periods):
         bal_stmnt_df = fund.get_indicators(stock, dimension, periods, "bal_stmnt")
         description_s = pd.Series(fund.bal_stmnt_ind_dict)
         bal_stmnt_df.insert(0, 'Description', description_s)
-        bal_stmnt_df.insert(1, 'Quandl Fundamental Indicators', bal_stmnt_df.index)
+        bal_stmnt_df.insert(1, 'Sharadar Fundamental Indicators', bal_stmnt_df.index)
         rows_written = fund.write_df_to_excel_sheet(bal_stmnt_df, row, col,
                                                     shtname, use_header=False)
         row = row + rows_written
@@ -844,7 +854,7 @@ def stock_xlsx(outfile, stocks, database, dimension, periods):
 
         description_s = pd.Series(fund.metrics_and_ratios_ind_dict)
         metrics_and_ratios_ind.insert(0, 'Description', description_s)
-        metrics_and_ratios_ind.insert(1, 'Quandl Metrics and Ratio Indicators',
+        metrics_and_ratios_ind.insert(1, 'Sharadar Metrics and Ratio Indicators',
                                       metrics_and_ratios_ind.index)
 
         row = row + 2
