@@ -78,7 +78,7 @@ def test_fund_SF1_db_init():
 
 def test_fund_retreive_one():
     global test_tmp_dir
-    if "QUANDL_API_SF0_KEY" == None:
+    if "QUANDL_API_SF0_KEY" not in os.environ:
         pytest.skip("QUANDL_API_SFO_KEY not set in the environment") 
     print(sys.path)
     writer = pd.ExcelWriter("",
