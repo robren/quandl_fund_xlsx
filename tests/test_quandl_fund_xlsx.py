@@ -77,8 +77,9 @@ def test_fund_SF1_db_init():
     assert f.database == "SF1"
 
 def test_fund_retreive_one():
-    # TODO if the API_KEY is not set in our environment skip this test
     global test_tmp_dir
+    if "QUANDL_API_SF0_KEY" == None:
+        pytest.skip("QUANDL_API_SFO_KEY not set in the environment") 
     print(sys.path)
     writer = pd.ExcelWriter("",
                         engine='xlsxwriter',
