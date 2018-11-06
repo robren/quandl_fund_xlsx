@@ -18,7 +18,6 @@ token!
 import pandas as pd
 import pytest
 import sys
-#from mock import Mock
 import os
 import pathlib
 import uuid
@@ -31,19 +30,6 @@ sys.path.append(parentddir)
 
 from  quandl_fund_xlsx import fundamentals as fun
 
-
-# MAybe get rid of this mock portion
-#def mock_SF0_fundamentals():
-#    return Mock(spec=fun.SharadarFundamentals('SF0')
-
-# New bit potenilly class SharadarFundamentals(Fundamentals):
-
-#def test_mock_SF0_fundamentals(mock_SF0_fundamentals):
-#    f = mock_SF0_fundamentals
-#    stock = 'INTC'
-#    periods = 7
-#    f.get_indicators(stock, 'MRY', periods, "i_stmnt")
-#    f.get_indicators.assert_called_with(stock, 'MRY', periods, "i_stmnt")
 
 test_tmp_dir = './tests/test_tmp_dir'
 
@@ -89,5 +75,5 @@ def test_fund_retreive_one():
     assert(path.exists() == False)
     fun.stock_xlsx(outfile, ['AAPL'], "SF0", 'MRY', 5)
     assert(path.exists() == True)
-    # TODO Remove the generated file
+    path.unlink()
 

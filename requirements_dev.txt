@@ -30,3 +30,4 @@ twine==1.9.1
 typing==3.6.2
 urllib3==1.21.1
 XlsxWriter==0.9.8
+pathlib==1.0.1
