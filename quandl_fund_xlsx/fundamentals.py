@@ -339,21 +339,13 @@ class Fundamentals(object):
             return
 
         def _debt_to_total_capital():
-            if self.database == 'SF0':
-                self.calc_ratios_df.loc[ratio] = \
-                    self.bal_stmnt_df.loc['DEBT']/self.metrics_and_ratios_df.loc['INVCAP']
-            elif self.database == 'SF1':
-                self.calc_ratios_df.loc[ratio] = \
-                    self.bal_stmnt_df.loc['DEBT']/self.metrics_and_ratios_df.loc['INVCAPAVG']
+            self.calc_ratios_df.loc[ratio] = \
+                self.bal_stmnt_df.loc['DEBT']/self.metrics_and_ratios_df.loc['INVCAPAVG']
             return
 
         def _roic():
-            if self.database == 'SF0':
-                self.calc_ratios_df.loc[ratio] = \
-                    self.i_stmnt_df.loc['EBIT']/self.metrics_and_ratios_df.loc['INVCAP'] * 100
-            elif self.database == 'SF1':
-                self.calc_ratios_df.loc[ratio] = \
-                    self.i_stmnt_df.loc['EBIT']/self.metrics_and_ratios_df.loc['INVCAPAVG'] * 100
+            self.calc_ratios_df.loc[ratio] = \
+                self.i_stmnt_df.loc['EBIT']/self.metrics_and_ratios_df.loc['INVCAPAVG'] * 100
 #        self.database =  database
 
         # Times Interest coverage aka fixed charge coverage Pg 278.
@@ -595,81 +587,7 @@ class Fundamentals(object):
         return dframe
 
 
-class SF0Fundamentals(Fundamentals):
-
-    # Income Statement Indicator Quandl/Sharadar Codes
-    I_STMNT_IND = [
-        ('REVENUE', 'Revenues'),
-        ('GP', 'Gross Profit'),
-        ('INTEXP', 'Interest Expense'),
-        ('TAXEXP', 'Tax Expense'),
-        ('EBIT', 'Earnings Before Interest and Taxes'),
-        ('NETINC', 'Net Income'),
-        ('NETINCCMN', 'Net Income to Common (after prefs paid'),
-        ('EPS', 'Earnings Per Share '),
-        ('EPSDIL', 'Earnings Per Share Diluted '),
-        ('SHARESBAS', 'Shares Basic'),
-        ('DPS', 'Dividends per Basic Common Share'),
-        ('PREFDIVIS', "Preferred Dividends per Basic Common Share")
-    ]
-
-    # Cash Flow Statement Indicator Quandl/Sharadar Codes
-    CF_STMNT_IND = [
-        ('DEPAMOR', 'Depreciation and Amortization'),
-        ('NCFO', 'Net Cash Flow From Operations'),
-        ('NCFI', 'Net Cash Flow From Investing'),
-        ('CAPEX', 'Capital Expenditure'),
-        ('NCFDIV', 'Payment of Dividends and Other Cash Distributions')
-    ]
-
-    # Balance Statement Indicator Quandl/Sharadar Codes
-    BAL_STMNT_IND = [
-        ('ASSETS', 'Total Assets'),
-        ('DEBT', 'Total Debt'),
-        ('LIABILITIES', 'Total Liabilities'),
-        ('EQUITY', 'Shareholders Equity'),
-        ('SHARESWA', 'Weighted Average Shares ')
-    ]
-    # Metrics and Ratio  Indicator Quandl/Sharadar Codes
-    METRICS_AND_RATIOS_IND = [
-        ('DE', 'Debt to Equity Ratio'),
-        ('EBITDA', 'Earnings Before Interest Taxes & Depreciation & Amortization'),
-        ('FCF', 'Free Cash Flow'),
-        ('INVCAP', 'Invested Capital')
-    ]
-
-    # Locally calculated by this package codes. For each code there's a
-    # routine to calculate the ratio or metric from the quandl API provided
-    # values obtained using the codes above.
-    CALCULATED_RATIOS = [
-        ("debt_cfo_ratio", 'Total Debt / Cash Flow From Operations'),
-        ("debt_ebitda_ratio", 'Total Debt / EBITDA'),
-        ("depreciation_cfo_ratio", 'Depreciation / Cash Flow From Operations'),
-        ("ebit_interest_coverage", 'EBIT / Interest Expense'),
-        ("ebitda_interest_coverage", 'EBITDA / Interest Expense'),
-        ("debt_to_total_capital", 'Total Debt / Invested Capital'),
-        ("debt_to_ebitda", 'Total Debt / EBITDA'),
-        ("return_on_invested_capital", 'Return on Invested Capital: EBIT / Invested Capital'),
-        ("rough_ffo", 'Rough FFO: Net Income plus Depreciation (missing cap gain from RE sales adjust)'),
-        #("rough_affo", 'Rough AFFO: Net Income plus depreciation minus capex (missing the cap gain from RE sales adjust'),
-        ('income_dividend_payout_ratio', 'Dividends / Net Income'),
-        ('rough_ffo_dividend_payout_ratio', 'Dividends / rough_ffo'),
-        #('rough_affo_dividend_payout_ratio', 'Dividends / rough_affo')
-    ]
-
-    def __init__(self, writer):
-        Fundamentals.__init__(self,
-                              'SF0',
-                              self.I_STMNT_IND,
-                              self.CF_STMNT_IND,
-                              self.BAL_STMNT_IND,
-                              self.METRICS_AND_RATIOS_IND,
-                              self.CALCULATED_RATIOS,
-                              writer
-                              )
-
-
-class SF1Fundamentals(Fundamentals):
+class SharadarFundamentals(Fundamentals):
 
     # Income Statement Indicator Quandl/Sharadar Codes
     I_STMNT_IND = [
@@ -776,9 +694,9 @@ class SF1Fundamentals(Fundamentals):
         ('free_cash_flow_conversion_ratio', 'Free CashFlow Conversion Ratio')
     ]
 
-    def __init__(self, writer):
+    def __init__(self, database, writer):
         Fundamentals.__init__(self,
-                              'SF1',
+                              database,
                               self.I_STMNT_IND,
                               self.CF_STMNT_IND,
                               self.BAL_STMNT_IND,
@@ -795,14 +713,10 @@ def stock_xlsx(outfile, stocks, database, dimension, periods):
                             engine='xlsxwriter',
                             date_format='d mmmm yyyy')
 
-    # code the else for SF1
     # Get a stmnt dataframe, a quandl ratios dataframe and our calculated ratios dataframe
     # for each of these frames write into a separate worksheet per stock
     for stock in stocks:
-        if database == 'SF0':
-            fund = SF0Fundamentals(writer)
-        elif database == 'SF1':
-            fund = SF1Fundamentals(writer)
+        fund = SharadarFundamentals(database,writer)
 
         logger.info('Processing the stock %s', stock)
 
@@ -878,7 +792,8 @@ def stock_xlsx(outfile, stocks, database, dimension, periods):
 
 def main():
 
-    stocks = ['SPG', 'WPC', 'KIM', 'SKT', 'NNN', 'STOR']
+    #stocks = ['SPG', 'WPC', 'KIM', 'SKT', 'NNN', 'STOR']
+    stocks = ['AAPL']
 
     periods = 5
 

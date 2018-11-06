@@ -16,8 +16,8 @@ Options:
   -t --ticker <ticker>  Ticker symbol
   -o --output <file>    Output file [default: stocks.xlsx]
   -y --years <years>    How many years of results (max 7 with SF0) [default: 5]
-  -d --database <database>    Sharadar Fundamentals database to use, SFO or
-                              SF1 [default: SF1]
+  -d --database <database>    Sharadar Fundamentals database to use, SFO (aka Sample Data) or
+                              SF1 [default: SF0]
   --dimension <dimension>     Sharadar database dimension, ARY, MRY, ART, MRT [default: MRY]
 
   --version             Show version.
@@ -27,6 +27,7 @@ Options:
 # otherwise the docopt module does not work.
 from docopt import docopt
 from .fundamentals import stock_xlsx
+import pathlib
 import sys
 
 
@@ -54,6 +55,10 @@ def main(args=None):
     database = arguments['--database']
     dimension = arguments['--dimension']
 
+    path = pathlib.Path(outfile)
+    if path.exists():
+        print("Output file {} exists".format(outfile))
+        sys.exit()
 
     print("Output will be written to {}".format(outfile))
     stock_xlsx(outfile, tickers, database, dimension, years)
