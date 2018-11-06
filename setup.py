@@ -14,7 +14,7 @@ requirements = [
     'pandas',
     'quandl',
     'xlsxwriter',
-    'mock'
+    'pathlib'
 ]
 
 test_requirements = [
