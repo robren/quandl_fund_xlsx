@@ -362,6 +362,13 @@ class Fundamentals(object):
                 self.metrics_and_ratios_df.loc['EBITDA']/self.i_stmnt_df.loc['INTEXP']
             return
 
+        def _ebitda_minus_capex_interest_coverage():
+            # Recall that CAPEX is returned from Sharadar as a -ve number.
+            self.calc_ratios_df.loc[ratio] = \
+            (self.metrics_and_ratios_df.loc['EBITDA'] + self.cf_stmnt_df.loc['CAPEX']) / \
+                self.i_stmnt_df.loc['INTEXP']
+            return
+
         def _rough_ffo():
             self.calc_ratios_df.loc[ratio] = \
                 self.i_stmnt_df.loc['NETINC'] + self.cf_stmnt_df.loc['DEPAMOR']
@@ -404,7 +411,18 @@ class Fundamentals(object):
             self.calc_ratios_df.loc[ratio] = \
                 (self.calc_ratios_df.loc['rough_ffo'] / \
                         self.bal_stmnt_df.loc['SHARESWA']) 
+            return
 
+        def _cfo_ps():
+            self.calc_ratios_df.loc[ratio] = \
+                (self.cf_stmnt_df.loc['NCFO'] / \
+                        self.bal_stmnt_df.loc['SHARESWA']) 
+            return
+
+        def _fcf_ps():
+            self.calc_ratios_df.loc[ratio] = \
+                self.metrics_and_ratios_df.loc['FCF']  / \
+                        self.bal_stmnt_df.loc['SHARESWA'] 
             return
 
         def _ev_opinc_ratio():
@@ -443,14 +461,13 @@ class Fundamentals(object):
                 self.i_stmnt_df.loc['OPINC'] / self.calc_ratios_df.loc['kjm_capital_employed_2']  
             return
 
-        def _free_cash_flow_levered():
+        def _dividends_free_cash_flow_ratio():
             self.calc_ratios_df.loc[ratio] = \
-                self.metrics_and_ratios_df.loc['FCF'] - self.i_stmnt_df.loc['INTEXP']
+                self.cf_stmnt_df.loc['NCFDIV'] / self.metrics_and_ratios_df.loc['FCF'] 
             return
-
-        def _dividends_free_cash_flow_levered_ratio():
+        def _preferred_free_cash_flow_ratio():
             self.calc_ratios_df.loc[ratio] = \
-                self.cf_stmnt_df.loc['NCFDIV'] / self.calc_ratios_df.loc['free_cash_flow_levered'] 
+                self.i_stmnt_df.loc['PREFDIVIS'] / self.metrics_and_ratios_df.loc['FCF'] 
             return
 
         def _operating_margin():
@@ -491,6 +508,7 @@ class Fundamentals(object):
             "return_on_invested_capital": _roic,
             "ebit_interest_coverage": _ebit_interest_coverage,
             "ebitda_interest_coverage": _ebitda_interest_coverage,
+            "ebitda_minus_capex_interest_coverage": _ebitda_minus_capex_interest_coverage,
             "debt_cfo_ratio": _debt_cfo_ratio,
             "depreciation_cfo_ratio": _depreciation_cfo_ratio,
             "depreciation_revenue_ratio": _depreciation_revenue_ratio,
@@ -506,13 +524,15 @@ class Fundamentals(object):
             "kjm_capital_employed_2": _kjm_capital_employed_2,
             "kjm_return_on_capital_employed_1": _kjm_return_on_capital_employed_1,
             "kjm_return_on_capital_employed_2": _kjm_return_on_capital_employed_2,
-            "free_cash_flow_levered": _free_cash_flow_levered,
-            "dividends_free_cash_flow_levered_ratio" : _dividends_free_cash_flow_levered_ratio,
+            "dividends_free_cash_flow_ratio" : _dividends_free_cash_flow_ratio,
+            "preferred_free_cash_flow_ratio" : _preferred_free_cash_flow_ratio,
             "operating_margin": _operating_margin,
             "sg_and_a_gross_profit_ratio": _sg_and_a_gross_profit_ratio,
             "ltdebt_cfo_ratio": _ltdebt_cfo_ratio,
             "ltdebt_earnings_ratio": _ltdebt_earnings_ratio,
-            "free_cash_flow_conversion_ratio": _free_cash_flow_conversion_ratio
+            "free_cash_flow_conversion_ratio": _free_cash_flow_conversion_ratio,
+            "cfo_ps": _cfo_ps,
+            "fcf_ps": _fcf_ps,
         }
 
         # Get the function from switcher dictionary
@@ -599,12 +619,12 @@ class SharadarFundamentals(Fundamentals):
         ('OPINC', 'Operating Income'),
         ('EBIT', 'Earnings Before Interest and Taxes'),
         ('NETINC', 'Net Income'),
-        ('NETINCCMN', 'Net Income to Common (after prefs paid'),
+        ('PREFDIVIS', "Preferred Dividends"),
+        ('NETINCCMN', 'Net Income to Common (after prefs paid)'),
         ('EPSDIL', 'Earnings Per Share Diluted '),
         ('PRICE','Price per Share'),
         ('SHARESWADIL', 'Weighted Average Shares Diluted'),
         ('DPS', 'Dividends per Basic Common Share'),
-        ('PREFDIVIS', "Preferred Dividends per Basic Common Share"),
     ]
 
     # Cash Flow Statement Indicator Quandl/Sharadar Codes
@@ -613,6 +633,7 @@ class SharadarFundamentals(Fundamentals):
         ('NCFO', 'Net Cash Flow From Operations'),
         ('NCFI', 'Net Cash Flow From Investing'),
         ('CAPEX', 'Capital Expenditure'),
+        ('NCFF', 'Net Cash Flow From Financing'),
         ('NCFDIV', 'Payment of Dividends and Other Cash Distributions')
     ]
 
@@ -646,7 +667,7 @@ class SharadarFundamentals(Fundamentals):
         ('ROE', 'Return on Equity: Net Income / Average Equity'),
         ('ROS', 'Return on Sales: EBIT / Revenue'),
         ('EBITDA', 'Earnings Before Interest Taxes & Depreciation & Amortization'),
-        ('FCF', 'Free Cash Flow'),
+        ('FCF', 'Free Cash Flow: CFO - CapEx'),
         ('INVCAPAVG', 'Invested Capital'),
         ('ROIC', 'Return On Invested Capital'),
         ('GROSSMARGIN', 'Gross Margin: Gross Profit/ Revenue'),
@@ -670,13 +691,16 @@ class SharadarFundamentals(Fundamentals):
         ("liabilities_equity_ratio", 'Total Liabilities / Shareholders Equity'),
         ("ebit_interest_coverage", 'EBIT / Interest Expense'),
         ("ebitda_interest_coverage", 'EBITDA / Interest Expense'),
+        ("ebitda_minus_capex_interest_coverage", 'EBITDA - CapEx / Interest Expense'),
         ("debt_to_total_capital", 'Total Debt / Invested Capital'),
         ("return_on_invested_capital", 'Return on Invested Capital: EBIT / Invested Capital'),
         ("kjm_capital_employed_1", 'Kenneth J  Marshal Capital Employed Subtract CASH'),
         ("kjm_capital_employed_2", 'Kenneth J  Marshal Capital Employed'),
         ("kjm_return_on_capital_employed_1", 'KJM Return on Capital Employed subtract CASH'),
         ("kjm_return_on_capital_employed_2", 'KJM Return on Capital Employed'),
-        ("free_cash_flow_levered", 'FCF-Levered: FCF - Interest Expenses'),
+        # FCF is already levered since CFO  already includes the effect of interest
+        # payments.
+#        ("free_cash_flow_levered", 'FCF-Levered: FCF - Interest Expenses'),
         ("debt_cfo_ratio", 'Total Debt / Cash Flow From Operations'),
         ("ltdebt_cfo_ratio", 'Long Term Debt / Cash Flow From Operations'),
         ("ltdebt_earnings_ratio", 'Long Term Debt / Income'),
@@ -690,8 +714,11 @@ class SharadarFundamentals(Fundamentals):
         #('rough_affo_dividend_payout_ratio', 'Dividends / rough_affo')
         ('price_rough_ffo_ps_ratio', 'Price divided by rough_ffo_ps'),
         ('rough_ffo_ps', 'Rough FFO per Share'),
-        ('dividends_free_cash_flow_levered_ratio', 'Dividends/Levered FCF'),
-        ('free_cash_flow_conversion_ratio', 'Free CashFlow Conversion Ratio')
+        ('cfo_ps', 'Cash Flow from Operations  per Share'),
+        ('fcf_ps', 'Free Cash Flow per Share'),
+        ('dividends_free_cash_flow_ratio', 'Dividends/FCF'),
+        ('preferred_free_cash_flow_ratio', 'Preferred Payments/FCF'),
+        ('free_cash_flow_conversion_ratio', 'Free Cash Flow Conversion Ratio')
     ]
 
     def __init__(self, database, writer):

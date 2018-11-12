@@ -20,7 +20,7 @@ quandl_fund_xlsx
 
 A unofficial CLI tool which uses the Quandl API and the Sharadar Essential Fundamentals
 Database to extract financial fundamentals, Sharadar provided ratios as
-well as calculate additional ratios.  Results are
+well as calculate additional ratios. Results are
 written to an Excel Workbook with a separate worksheet per ticker analysed.
 
 * Free software: Apache Software License 2.0
@@ -79,10 +79,18 @@ Installation
 
 Configuration
 -------------
+If you have have a key for the free sample data set the  QUANDL_API_SF0_KEY
+environment variable. If you have paid access to the full range of
+fundamentals data set the QUANDL_API_SF1_KEY in the environment.
 
 .. code:: bash
 
-    export QUANDL_API_KEY='YourQuandlAPIKey'
+   export QUANDL_API_SF0_KEY='YourQuandlAPIKey'
+   
+   or
+
+   export QUANDL_API_SF1_KEY='YourQuandlAPIKey'
+
 
 Usage
 -----
