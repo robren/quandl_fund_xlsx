@@ -14,7 +14,8 @@ requirements = [
     'pandas',
     'quandl',
     'xlsxwriter',
-    'pathlib'
+    'pathlib',
+    'requests>=2.20.0'
 ]
 
 test_requirements = [
