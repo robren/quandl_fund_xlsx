@@ -495,6 +495,12 @@ class Fundamentals(object):
                 self.metrics_and_ratios_df.loc['FCF'] / self.metrics_and_ratios_df.loc['EBITDA']
             return
 
+        # Pg 290 of Creative Cash Flow Reporting, Mumford et al.
+        def _excess_cash_margin_ratio():
+            self.calc_ratios_df.loc[ratio] = \
+                (self.cf_stmnt_df.loc['NCFO'] - self.i_stmnt_df.loc['OPINC']) * 100/ \
+                self.i_stmnt_df.loc['REVENUE']
+            return
 
 
         switcher = {
@@ -533,6 +539,7 @@ class Fundamentals(object):
             "free_cash_flow_conversion_ratio": _free_cash_flow_conversion_ratio,
             "cfo_ps": _cfo_ps,
             "fcf_ps": _fcf_ps,
+            "excess_cash_margin_ratio": _excess_cash_margin_ratio,
         }
 
         # Get the function from switcher dictionary
@@ -718,7 +725,8 @@ class SharadarFundamentals(Fundamentals):
         ('fcf_ps', 'Free Cash Flow per Share'),
         ('dividends_free_cash_flow_ratio', 'Dividends/FCF'),
         ('preferred_free_cash_flow_ratio', 'Preferred Payments/FCF'),
-        ('free_cash_flow_conversion_ratio', 'Free Cash Flow Conversion Ratio')
+        ('free_cash_flow_conversion_ratio', 'Free Cash Flow Conversion Ratio'),
+        ('excess_cash_margin_ratio', 'Excess Cash Margin Ratio')
     ]
 
     def __init__(self, database, writer):

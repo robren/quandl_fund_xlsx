@@ -53,3 +53,16 @@ Now uses the get_table methods from the quandl_api.
   SF1 codes.
 
 
+0.2.0 (2018-11-13)    
+-------------------
+* After learning that the sample data API now allows _all_ of the same
+  indicators as those available using the paid SF! aPI key I was able to
+  remove a lot of special case code for the Sample data KEY. 
+  The paid KEY allows for many more dimensions to be queried.
+* The CLI now defaults back to using the sample data SF0 API key.
+* Added a number of Cash Flow from Operations  based metrics as well as some 
+  Free Cash Flow based metrics.
+* Added a development test which uses the API and a sample data or SF0 API key 
+  to extract ratios for AAPL.
+* Added Excess Cash Margin ratio.
+
