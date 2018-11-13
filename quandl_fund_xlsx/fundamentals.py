@@ -18,7 +18,7 @@ import quandl
 from quandl.errors.quandl_error import (
     NotFoundError)
 from xlsxwriter.utility import xl_range
-from xlsxwriter.utility import xl_rowcol_to_cell 
+from xlsxwriter.utility import xl_rowcol_to_cell
 from . import api_key
 # from pdb import set_trace as bp
 
@@ -239,7 +239,6 @@ class Fundamentals(object):
                                               spark_row, col + cagr_col -1)
             worksheet.add_sparkline(spark_row, spark_col, {'range': numeric_data_row_range,
                                                             'markers': 'True'})
-            
 
         if use_header is True:
             for column, hdr in zip(range(col, num_cols + col), dframe.columns.values.tolist()):
@@ -404,25 +403,25 @@ class Fundamentals(object):
             self.calc_ratios_df.loc[ratio] = \
                 self.i_stmnt_df.loc['PRICE'] /  \
                 (self.calc_ratios_df.loc['rough_ffo'] / \
-                        self.bal_stmnt_df.loc['SHARESWA']) 
+                        self.bal_stmnt_df.loc['SHARESWA'])
             return
 
         def _rough_ffo_ps():
             self.calc_ratios_df.loc[ratio] = \
                 (self.calc_ratios_df.loc['rough_ffo'] / \
-                        self.bal_stmnt_df.loc['SHARESWA']) 
+                        self.bal_stmnt_df.loc['SHARESWA'])
             return
 
         def _cfo_ps():
             self.calc_ratios_df.loc[ratio] = \
                 (self.cf_stmnt_df.loc['NCFO'] / \
-                        self.bal_stmnt_df.loc['SHARESWA']) 
+                        self.bal_stmnt_df.loc['SHARESWA'])
             return
 
         def _fcf_ps():
             self.calc_ratios_df.loc[ratio] = \
                 self.metrics_and_ratios_df.loc['FCF']  / \
-                        self.bal_stmnt_df.loc['SHARESWA'] 
+                        self.bal_stmnt_df.loc['SHARESWA']
             return
 
         def _ev_opinc_ratio():
@@ -440,34 +439,34 @@ class Fundamentals(object):
                 self.bal_stmnt_df.loc['ASSETS'] - \
                 self.bal_stmnt_df.loc['CASHNEQUSD'] - \
                 self.bal_stmnt_df.loc['PAYABLES'] - \
-                self.bal_stmnt_df.loc['DEFERREDREV'] 
+                self.bal_stmnt_df.loc['DEFERREDREV']
             return
 
         def _kjm_capital_employed_2():
             self.calc_ratios_df.loc[ratio] = \
                 self.bal_stmnt_df.loc['ASSETS'] - \
                 self.bal_stmnt_df.loc['PAYABLES'] - \
-                self.bal_stmnt_df.loc['DEFERREDREV'] 
-                        
+                self.bal_stmnt_df.loc['DEFERREDREV']
+
             return
 
         def _kjm_return_on_capital_employed_1():
             self.calc_ratios_df.loc[ratio] = \
-                self.i_stmnt_df.loc['OPINC'] / self.calc_ratios_df.loc['kjm_capital_employed_1']  
+                self.i_stmnt_df.loc['OPINC'] / self.calc_ratios_df.loc['kjm_capital_employed_1']
             return
 
         def _kjm_return_on_capital_employed_2():
             self.calc_ratios_df.loc[ratio] = \
-                self.i_stmnt_df.loc['OPINC'] / self.calc_ratios_df.loc['kjm_capital_employed_2']  
+                self.i_stmnt_df.loc['OPINC'] / self.calc_ratios_df.loc['kjm_capital_employed_2']
             return
 
         def _dividends_free_cash_flow_ratio():
             self.calc_ratios_df.loc[ratio] = \
-                self.cf_stmnt_df.loc['NCFDIV'] / self.metrics_and_ratios_df.loc['FCF'] 
+                self.cf_stmnt_df.loc['NCFDIV'] / self.metrics_and_ratios_df.loc['FCF']
             return
         def _preferred_free_cash_flow_ratio():
             self.calc_ratios_df.loc[ratio] = \
-                self.i_stmnt_df.loc['PREFDIVIS'] / self.metrics_and_ratios_df.loc['FCF'] 
+                self.i_stmnt_df.loc['PREFDIVIS'] / self.metrics_and_ratios_df.loc['FCF']
             return
 
         def _operating_margin():
@@ -550,11 +549,11 @@ class Fundamentals(object):
     def _get_dataset_indicators(self, ticker, ind, dimension, rows):
         first = True
         dframe = None
-        # With the API change, of early 2018  the SF0 and SF1 datasets 
+        # With the API change, of early 2018  the SF0 and SF1 datasets
         # use the same  database code of SHARADAR/SF!. Different dimensions
         # tickers supported apply between the free SF0 dataset and the paid
         # SF1. Confirmed via # email from vincent at Sharadar.
-        database = 'SHARADAR/SF1' 
+        database = 'SHARADAR/SF1'
         for indicator in ind.keys():
             logger.debug('_get_dataset_indicators: db %s, ticker %s, indicator %s, dimension %s', self.database, ticker, indicator, dimension)
 
@@ -568,14 +567,14 @@ class Fundamentals(object):
 
                 assert len(qdframe.index) > 0, "Sharadar returning zero len table for ticker %r indicator %r" % (ticker, indicator)
 
-                # We've now got one  column named after the indicator, 
-                # e.g revenue and a datekey column too 
+                # We've now got one  column named after the indicator,
+                # e.g revenue and a datekey column too
                 # Create a copy of this quandle dataframe
                 if first is True:
                     dframe = qdframe.copy()
 
                     # The old API returned uppercase column names, this new
-                    # get_table form returns lowercase. 
+                    # get_table form returns lowercase.
                     # So .. make em upper again to avoid
                     # having to modify all existing strings.
                     dframe.rename(columns={indicator.lower(): indicator.upper()},inplace=True)
@@ -601,7 +600,7 @@ class Fundamentals(object):
         dframe = dframe.tail(rows)
         #logger.debug("_get_dataset_indicators: dataframe aftrer sort and truncate = %s" % (dframe))
 
-        # We now have a bunch of indicator columns and a single datekey column 
+        # We now have a bunch of indicator columns and a single datekey column
         # What we want is the data to have a set of date columns with
         # indicators as each row.
         # Make the datekey column the index.
