@@ -32,12 +32,13 @@ Features
 
 For a given ticker, fundamental data is obtained using the Quandl API and the
 Sharadar Fundamentals database. This data is then used to calculate various
-useful, financial ratios. The ratios provide profitability indicators, a
-number of financial leverage indicators providing a sense of the amount of
-debt a company has on it's balance sheet as well as its ability to service
-it's debt and pay a dividend.
+useful, financial ratios. The ratios  include 
 
-Some REIT specific ratios  such as FFO and AFFO are very roughly approximated.
+- Profitability indicators
+- Financial leverage indicators
+- Free and Operating Cash flow indicators.
+
+Some REIT specific ratios such as FFO are very roughly approximated.
 These specific ratios are only roughly approximated since certain data, namely
 Real estate sales data for the period does not appear to be available via the
 API (It's often buried in the footnotes of these companies filings).
@@ -45,11 +46,11 @@ API (It's often buried in the footnotes of these companies filings).
 
 The output excel worksheet for each ticker processed is divided into three main areas:
 
-- Quandl statement indicators. This is data obtained from the three main
+- Sharadar statement indicators. This is data obtained from the three main
   financial statements; the Income Statement, the Balance Sheet and the Cash Flow
   Statement. 
 
-- Quandl Metrics and Ratio Indicators. These are quandl provided financial ratios.
+- Sharadar Metrics and Ratio Indicators. These are quandl provided financial ratios.
 
 - Calculated Metrics and Ratios. These are calculated by the package from the
   Sharadars data provided and tabulated by the statement indicators and the
@@ -59,12 +60,12 @@ The python Quandl API provides the ability to return data within python pandas
 dataframes. This makes calculating various ratios as simple as dividing two
 variables by each other.
 
-The calculations support the data offered by the free `SF0
-<https://www.quandl.com/data/SF0-Free-US-Fundamentals-Data/documentation/about#indicators>`_
-database, and the paid for `SF1
+The calculations support the data offered by the free sample 
+database (formerly referred to by Sharadar as the SF0 database), and the paid for `SF1
 <https://www.quandl.com/data/SF1-Core-US-Fundamentals-Data/documentation/dimensions>`_
-database, a richer set of data is available as well as a larger coverage
-universe of stocks is supported by the paid SF1 database.
+database. The coverage universe is the same for both the sample data and the
+paid database. The key diference being, support as well as a much richer set
+of so-called Dimensions.
 
 .. figure:: snip.png
 
@@ -114,17 +115,17 @@ Usage
 	-o --output <file>    Output file [default: stocks.xlsx]
 	-y --years <years>    How many years of results (max 7 with SF0) [default: 5]
 	-d --database <database>    Sharadar Fundamentals database to use, SFO or
-								SF1 [default: SF1]
-    --dimension <dimension>     Sharadar database dimension, ARY, MRY, ART, MRT [default: MRY]
+								SF1 [default: SF0]
+        --dimension <dimension>     Sharadar database dimension, ARY, MRY, ART, MRT [default: MRY]
 	--version             Show version.
 
 
 .. code:: bash
 
-	quandl_fund_xlsx -t INTC -o excel_files/intc.xlsx
+	quandl_fund_xlsx -t INTC -o intc-MRY.xlsx
 	{'--database': 'SF0',
 	'--input': None,
-	'--output': 'excel_files/intc.xlsx',
+	'--output': 'INTC-MRY.xlsx',
 	'--ticker': 'INTC',
 	'--years': '5'}
 	('Ticker =', 'INTC')
@@ -133,7 +134,7 @@ Usage
 
 	ls -lh excel_files
 	total 12K
-	-rw-rw-r-- 1 test test 8.7K Aug 22 06:09 intc.xlsx
+	-rw-rw-r-- 1 test test 8.7K Aug 22 06:09 intc-MRY.xlsx
 
 Local Development
 -----------------
