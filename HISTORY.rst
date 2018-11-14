@@ -66,3 +66,15 @@ Now uses the get_table methods from the quandl_api.
   to extract ratios for AAPL.
 * Added Excess Cash Margin ratio.
 
+0.2.1 (2018-11-13)    
+-------------------
+* Minor security fix, requests version now >=2.20.0
+*  Minor documentation cleanup
+
+
+0.2.2 (2018-11-13)    
+-------------------
+* Add support for the MRQ and ARQ dimensions.
+* Correct error in calculating CAGR when the data was given in quarterly increments.
+* Correctly reference the Excel spreadsheet example figures in the README.
+    
