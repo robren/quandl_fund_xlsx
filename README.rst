@@ -67,9 +67,15 @@ database. The coverage universe is the same for both the sample data and the
 paid database. The key diference being, support as well as a much richer set
 of so-called Dimensions.
 
-.. figure:: snip.png
+.. figure:: docs/Tech-1.png
+   :scale: 25
+   
+   The generated Excel workbook with one sheet per ticker.
 
-    The generated Excel workbook with one sheet per ticker.
+.. figure:: docs/Tech-2.png
+   :scale: 25
+   
+   Some bespoke metrics and ratios calculated based on Sharadar fundamentals.
 
 Installation
 ------------

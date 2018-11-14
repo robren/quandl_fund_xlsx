@@ -18,7 +18,8 @@ Options:
   -y --years <years>    How many years of results (max 7 with SF0) [default: 5]
   -d --database <database>    Sharadar Fundamentals database to use, SFO (aka Sample Data) or
                               SF1 [default: SF0]
-  --dimension <dimension>     Sharadar database dimension, ARY, MRY, ART, MRT [default: MRY]
+  --dimension <dimension>     Sharadar database dimension, ARY, MRY, ART, MRT, MRQ, ARQ 
+                              [default: MRY]
 
   --version             Show version.
 

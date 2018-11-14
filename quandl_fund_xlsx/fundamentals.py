@@ -161,6 +161,7 @@ class Fundamentals(object):
 
     def write_df_to_excel_sheet(self, dframe, row, col,
                                 sheetname,
+                                dimension,
                                 use_header=True,
                                 num_text_cols=2):
         """Writes a dataframe to an excel worksheet.
@@ -170,6 +171,9 @@ class Fundamentals(object):
             row: An int, the row to start writing at, zero based.
             col: An int, the col to start writing at, zero based.
             sheetname: A string, the desired name for the sheet.
+            dimension: A string representing the timeframe for which data is required.
+                For the SF0 sample database only 'MRY' or most recent yearly is supported.
+                For the SF1 database available options are: MRY, MRQ, MRT,ARY,ARQ,ART
             use_header: Whether to print the header of the dataframe
             num_text_cols: The number of columns which contain text. The remainder
                 of the columns are assumed to create numeric values.
@@ -225,8 +229,16 @@ class Fundamentals(object):
             # looks like I'll need to use  xl_rowcol_to_cell()
             beg_val = xl_rowcol_to_cell(cagr_row,begin_cagr_calc_col)
             end_val = xl_rowcol_to_cell(cagr_row,end_cagr_calc_col)
-            years = end_cagr_calc_col - begin_cagr_calc_col + 1
-            formula = '=({end_val}/{beg_val})^(1/{years}) - 1'.format(beg_val=beg_val,end_val=end_val,years=years)
+
+            if dimension == 'MRY' or dimension == 'ARY':
+                # We want the number of periods between the years.
+                years = end_cagr_calc_col - begin_cagr_calc_col 
+            else: 
+                # Theres a quarter between each reporting period
+                years = (end_cagr_calc_col - begin_cagr_calc_col)/4
+                
+            #formula = '=({end_val}/{beg_val})^(1/{years}) - 1'.format(beg_val=beg_val,end_val=end_val,years=years)
+            formula = '=IFERROR(({end_val}/{beg_val})^(1/{years}) - 1,\"\")'.format(beg_val=beg_val,end_val=end_val,years=years)
             worksheet.write(cagr_row, cagr_col,formula)
 
 
@@ -777,7 +789,8 @@ def stock_xlsx(outfile, stocks, database, dimension, periods):
         i_stmnt_df.insert(1, 'Sharadar Fundamental Indicators' + ' ' + dimension, i_stmnt_df.index)
 
         rows_written = fund.write_df_to_excel_sheet(i_stmnt_df, row, col,
-                                                    shtname, use_header=True)
+                                                    shtname, dimension,
+                                                    use_header=True)
         row = row + rows_written
 
         cf_stmnt_df = fund.get_indicators(stock, dimension, periods, "cf_stmnt")
@@ -785,7 +798,8 @@ def stock_xlsx(outfile, stocks, database, dimension, periods):
         cf_stmnt_df.insert(0, 'Description', description_s)
         cf_stmnt_df.insert(1, 'Sharadar Fundamental Indicators', cf_stmnt_df.index)
         rows_written = fund.write_df_to_excel_sheet(cf_stmnt_df, row, col,
-                                                    shtname, use_header=False)
+                                                    shtname,dimension,
+                                                    use_header=False)
         row = row + rows_written
 
         bal_stmnt_df = fund.get_indicators(stock, dimension, periods, "bal_stmnt")
@@ -793,7 +807,8 @@ def stock_xlsx(outfile, stocks, database, dimension, periods):
         bal_stmnt_df.insert(0, 'Description', description_s)
         bal_stmnt_df.insert(1, 'Sharadar Fundamental Indicators', bal_stmnt_df.index)
         rows_written = fund.write_df_to_excel_sheet(bal_stmnt_df, row, col,
-                                                    shtname, use_header=False)
+                                                    shtname,dimension,
+                                                    use_header=False)
         row = row + rows_written
 
         # Now for the metrics and ratios from the quandl API
@@ -807,7 +822,7 @@ def stock_xlsx(outfile, stocks, database, dimension, periods):
 
         row = row + 2
         rows_written = fund.write_df_to_excel_sheet(metrics_and_ratios_ind, row, col,
-                                                    shtname)
+                                                    shtname, dimension)
         row = row + rows_written
 
         # Now calculate some of the additional ratios for credit analysis
@@ -818,7 +833,7 @@ def stock_xlsx(outfile, stocks, database, dimension, periods):
 
         row = row + 2
         rows_written = fund.write_df_to_excel_sheet(calculated_ratios_df, row, col,
-                                                    shtname)
+                                                    shtname, dimension)
         logger.info('Processed the stock %s', stock)
 
     writer.save()
