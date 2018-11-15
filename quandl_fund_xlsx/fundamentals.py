@@ -356,7 +356,7 @@ class Fundamentals(object):
 
         def _roic():
             self.calc_ratios_df.loc[ratio] = \
-                self.i_stmnt_df.loc['EBIT']/self.metrics_and_ratios_df.loc['INVCAPAVG'] * 100
+                self.i_stmnt_df.loc['EBIT']/self.metrics_and_ratios_df.loc['INVCAPAVG'] 
 #        self.database =  database
 
         # Times Interest coverage aka fixed charge coverage Pg 278.
@@ -459,7 +459,6 @@ class Fundamentals(object):
                 self.bal_stmnt_df.loc['ASSETS'] - \
                 self.bal_stmnt_df.loc['PAYABLES'] - \
                 self.bal_stmnt_df.loc['DEFERREDREV']
-
             return
 
         def _kjm_return_on_capital_employed_1():
@@ -513,6 +512,19 @@ class Fundamentals(object):
                 self.i_stmnt_df.loc['REVENUE']
             return
 
+        def _interest_to_cfo_plus_interest_coverage():
+            self.calc_ratios_df.loc[ratio] = \
+                self.i_stmnt_df.loc['INTEXP'] / \
+                    (self.cf_stmnt_df.loc['NCFO'] + self.i_stmnt_df.loc['INTEXP'])
+            return
+        def _dividends_cfo_ratio():
+            self.calc_ratios_df.loc[ratio] = \
+                self.cf_stmnt_df.loc['NCFDIV'] / self.cf_stmnt_df.loc['NCFO'] 
+            return
+        def _preferred_cfo_ratio():
+            self.calc_ratios_df.loc[ratio] = \
+                self.i_stmnt_df.loc['PREFDIVIS'] / self.cf_stmnt_df.loc['NCFO'] 
+            return
 
         switcher = {
             "debt_equity_ratio": _debt_equity_ratio,
@@ -551,6 +563,9 @@ class Fundamentals(object):
             "cfo_ps": _cfo_ps,
             "fcf_ps": _fcf_ps,
             "excess_cash_margin_ratio": _excess_cash_margin_ratio,
+            "interest_to_cfo_plus_interest_coverage": _interest_to_cfo_plus_interest_coverage,
+            "dividends_cfo_ratio" : _dividends_cfo_ratio,
+            "preferred_cfo_ratio" : _preferred_cfo_ratio
         }
 
         # Get the function from switcher dictionary
@@ -710,6 +725,7 @@ class SharadarFundamentals(Fundamentals):
         ("ebit_interest_coverage", 'EBIT / Interest Expense'),
         ("ebitda_interest_coverage", 'EBITDA / Interest Expense'),
         ("ebitda_minus_capex_interest_coverage", 'EBITDA - CapEx / Interest Expense'),
+        ("interest_to_cfo_plus_interest_coverage", 'Interest / (CFO + Interest'), 
         ("debt_to_total_capital", 'Total Debt / Invested Capital'),
         ("return_on_invested_capital", 'Return on Invested Capital: EBIT / Invested Capital'),
         ("kjm_capital_employed_1", 'Kenneth J  Marshal Capital Employed Subtract CASH'),
@@ -723,16 +739,13 @@ class SharadarFundamentals(Fundamentals):
         ("ltdebt_cfo_ratio", 'Long Term Debt / Cash Flow From Operations'),
         ("ltdebt_earnings_ratio", 'Long Term Debt / Income'),
         ("rough_ffo", 'Rough FFO: Net Income plus Depreciation (missing cap gain from RE sales adjust)'),
-        # Do not present unless we can obtain sustaining Capex from the API.
-        # The overall CAPEX returned can be misleading, ie the number is too
-        # rough!
-        #("rough_affo", 'Rough AFFO: Net Income plus depreciation minus capex; missing the cap gain from RE sales adjust'),
-        ('income_dividend_payout_ratio', 'Dividends / Net Income'),
-        ('rough_ffo_dividend_payout_ratio', 'Dividends / rough_ffo'),
-        #('rough_affo_dividend_payout_ratio', 'Dividends / rough_affo')
-        ('price_rough_ffo_ps_ratio', 'Price divided by rough_ffo_ps'),
         ('rough_ffo_ps', 'Rough FFO per Share'),
+        ('price_rough_ffo_ps_ratio', 'Price divided by rough_ffo_ps'),
+        ('rough_ffo_dividend_payout_ratio', 'Dividends / rough_ffo'),
+        ('income_dividend_payout_ratio', 'Dividends / Net Income'),
         ('cfo_ps', 'Cash Flow from Operations  per Share'),
+        ('dividends_cfo_ratio', 'Dividends/CFO'), 
+        ('preferred_cfo_ratio', 'Preferred Payments/CFO'), 
         ('fcf_ps', 'Free Cash Flow per Share'),
         ('dividends_free_cash_flow_ratio', 'Dividends/FCF'),
         ('preferred_free_cash_flow_ratio', 'Preferred Payments/FCF'),
