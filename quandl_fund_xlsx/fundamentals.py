@@ -15,11 +15,11 @@ import logging
 import os
 import pandas as pd
 import quandl
+import sys
 from quandl.errors.quandl_error import (
     NotFoundError)
 from xlsxwriter.utility import xl_range
 from xlsxwriter.utility import xl_rowcol_to_cell
-from . import api_key
 # from pdb import set_trace as bp
 
 # Added this one line below  to get logging from the requests module,
@@ -49,12 +49,14 @@ class Fundamentals(object):
             if "QUANDL_API_SF0_KEY" in os.environ:
                 quandl.ApiConfig.api_key = os.environ['QUANDL_API_SF0_KEY']
             else:
-                quandl.ApiConfig.api_key = api_key.QUANDL_API_KEY
+                print('Exiting: Please set the QUANDL_API_SF0_KEY environment variable.')
+                sys.exit()
         elif (database == 'SF1') :
             if "QUANDL_API_SF1_KEY" in os.environ:
                 quandl.ApiConfig.api_key = os.environ['QUANDL_API_SF1_KEY']
             else:
-                quandl.ApiConfig.api_key = api_key.QUANDL_API_KEY
+                print('Exiting Please set the QUANDL_API_SF1_KEY environment variable.')
+                sys.exit()
 
         #self.database = 'SHARADAR/' + database
         self.database =  database
