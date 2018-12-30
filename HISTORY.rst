@@ -77,4 +77,8 @@ Now uses the get_table methods from the quandl_api.
 * Add support for the MRQ and ARQ dimensions.
 * Correct error in calculating CAGR when the data was given in quarterly increments.
 * Correctly reference the Excel spreadsheet example figures in the README.
-    
+
+0.2.3 (2018-12-29)    
+-------------------
+* Check for the presence of the QUANDL_API_SF0_KEY or the QUANDL_API_SF1_KEY 
+  environment variable  depending on which database the user is requesting to use.
