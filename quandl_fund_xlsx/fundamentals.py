@@ -656,7 +656,7 @@ class SharadarFundamentals(Fundamentals):
         ('NETINC', 'Net Income'),
         ('PREFDIVIS', "Preferred Dividends"),
         ('NETINCCMN', 'Net Income to Common (after prefs paid)'),
-        ('EPSDIL', 'Earnings Per Share Diluted '),
+        ('EPSDIL', 'Earnings Per Share Diluted'),
         ('PRICE','Price per Share'),
         ('SHARESWADIL', 'Weighted Average Shares Diluted'),
         ('DPS', 'Dividends per Basic Common Share'),
@@ -686,7 +686,7 @@ class SharadarFundamentals(Fundamentals):
         ('RECEIVABLES', 'Trade and Non Trade Receivables'),
         ('RETEARN', 'Retained Earnings'),
         ('EQUITY', 'Shareholders Equity'),
-        ('SHARESWA', 'Weighted Average Shares ')
+        ('SHARESWA', 'Weighted Average Shares')
     ]
     # Metrics and Ratio  Indicator Quandl/Sharadar Codes
     METRICS_AND_RATIOS_IND = [
@@ -715,7 +715,7 @@ class SharadarFundamentals(Fundamentals):
     CALCULATED_RATIOS = [
         ("operating_margin", 'Operating Margin: (Gross Profit - Opex)/ Revenue'),
         ("sg_and_a_gross_profit_ratio", 'SG&A to Gross Profit Ratio'),
-        ("depreciation_revenue_ratio", 'Depreciation / Revenue '),
+        ("depreciation_revenue_ratio", 'Depreciation / Revenue'),
         ("depreciation_cfo_ratio", 'Depreciation / Cash Flow From Operations'),
         ("ev_opinc_ratio", 'Acquirers Multiple: Enterprise Value / Operating Income'),
         ("debt_ebitda_ratio", 'Total Debt / EBITDA'),
