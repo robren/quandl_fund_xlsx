@@ -93,7 +93,7 @@ Installation
 Configuration
 -------------
 
-You will need a Quandl API key. This maybe obtained by signing up, for free at `https://www.quandl.com/sign-up-modal?defaultModal=showSignUp`_.
+You will need a Quandl API key. This maybe obtained by signing up, for free at `Quandl Signup <https://www.quandl.com/sign-up-modal?defaultModal=showSignUp>`_.
 The key will then be available under "profile" when logging into Quandl. This
 key allows for access to sample data for many of the datasets.
 
