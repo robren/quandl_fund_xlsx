@@ -64,8 +64,14 @@ The calculations support the data offered by the free sample
 database (formerly referred to by Sharadar as the SF0 database), and the paid for `SF1
 <https://www.quandl.com/data/SF1-Core-US-Fundamentals-Data/documentation/dimensions>`_
 database. The coverage universe is the same for both the sample data and the
-paid database. The key diference being, support as well as a much richer set
-of so-called Dimensions.
+paid database. The key difference being, support as well as a much richer set
+of so-called Dimensions (timeperiods). For example the sample data is taken from the annual
+filings of companies, whereas the paid data allows for Trailing Twelve Month
+as well as quarterly data. 
+
+Note:  For quarterly data, many of the ratios using income and cash flow statement values in the
+numerator will be inaccurate when using quarterly data e.g EBITDA/Intereset
+expense or Total Debt/ Cash Flow from Operations.
 
 .. figure:: docs/Tech-1.png
    :scale: 25
@@ -86,9 +92,16 @@ Installation
 
 Configuration
 -------------
+
+You will need a Quandl API key. This maybe obtained by signing up, for free at `https://www.quandl.com/sign-up-modal?defaultModal=showSignUp`_.
+The key will then be available under "profile" when logging into Quandl. This
+key allows for access to sample data for many of the datasets.
+
 If you have have a key for the free sample data set the  QUANDL_API_SF0_KEY
-environment variable. If you have paid access to the full range of
-fundamentals data set the QUANDL_API_SF1_KEY in the environment.
+environment variable to the value of your key. 
+
+If you have paid for access to the Sharadar 
+fundamentals data set, then set the QUANDL_API_SF1_KEY in the environment.
 
 .. code:: bash
 
@@ -99,8 +112,11 @@ fundamentals data set the QUANDL_API_SF1_KEY in the environment.
    export QUANDL_API_SF1_KEY='YourQuandlAPIKey'
 
 
-Usage
------
+For windows the setx command is used to set environment variables..
+
+
+Usage of the quandl_fund_xlsx CLI command
+-----------------------------------------
 .. code:: bash
 
 	quandl_fund_xlsx -h
@@ -144,6 +160,10 @@ Usage
 
 Local Development
 -----------------
+
+This section is only of relevance if you wish to hack on the code yourself,
+perhaps to add new ratios or display other Sharadar provided data values.
+
 
 It's recommended to setup a virtual environment and perform the installation
 within this. Use  pip to install the requirements but not the
