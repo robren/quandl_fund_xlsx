@@ -62,6 +62,9 @@ def test_fund_SF1_db_init():
     f = fun.SharadarFundamentals('SF1',writer)
     assert f.database == "SF1"
 
+# When using the SF0 KEY, quandl sometimes complains abou accessing the API
+# too frequently
+@pytest.mark.flaky(reruns=3, reruns_delay=2)
 def test_fund_retreive_one():
     global test_tmp_dir
     if "QUANDL_API_SF0_KEY" not in os.environ:
