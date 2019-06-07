@@ -32,9 +32,93 @@ formatter = logging.Formatter('%(asctime)s %(levelname)-8s %(message)s')
 handler.setFormatter(formatter)
 logger.addHandler(handler)
 
-logger.setLevel(logging.INFO)
-#logger.setLevel(logging.DEBUG)
+#logger.setLevel(logging.INFO)
+logger.setLevel(logging.DEBUG)
 
+
+# Can we extract the Indicators from the column names of the overall dataframe
+class Fundamentals_ng(object):
+    def __init__(self,
+                 database,
+                 calc_ratios,
+                 writer):
+        if (database == 'SF0') :
+            if "QUANDL_API_SF0_KEY" in os.environ:
+                quandl.ApiConfig.api_key = os.environ['QUANDL_API_SF0_KEY']
+            else:
+                print('Exiting: Please set the QUANDL_API_SF0_KEY environment variable.')
+                sys.exit()
+        elif (database == 'SF1') :
+            if "QUANDL_API_SF1_KEY" in os.environ:
+                quandl.ApiConfig.api_key = os.environ['QUANDL_API_SF1_KEY']
+            else:
+                print('Exiting Please set the QUANDL_API_SF1_KEY environment variable.')
+                sys.exit()
+
+        #self.database = 'SHARADAR/' + database
+        self.database =  database
+        self.stmt_df = None
+        
+        self.calc_ratios_dict = collections.OrderedDict(calc_ratios)
+        self.calc_ratios_df = None
+
+        self.writer = writer
+        self.workbook = writer.book
+        self.format_bold = self.workbook.add_format()
+        self.format_bold.set_bold()
+        self.format_commas_2dec = self.workbook.add_format()
+        self.format_commas_2dec.set_num_format('#,##0')
+        self.format_commas = self.workbook.add_format()
+        self.format_commas.set_num_format('0.00')
+        self.format_justify = self.workbook.add_format()
+        self.format_justify.set_align('justify')
+
+        # Add all the other functions. Radically simplified
+
+    def get_indicators(self, ticker, dimension, periods):
+        """Obtains fundamental company indicators from the Quandl API.
+
+        Uses the specified Quandl database to obtain a set of fundamental
+        datapoints (or indicators in Quandl parlance) for the provided ticker.
+
+        The formats accepted for the indicators and dimensions are described
+        in: https://www.quandl.com/data/SF0-Free-US-Fundamentals-Data/documentation/about
+        and
+        https://www.quandl.com/data/SF1-Core-US-Fundamentals-Data/documentation/about
+
+        This is vastly simpler than earlier versions where I got a subset of the indicators one
+        by one.
+
+        Args:
+            ticker: A string representing the stock.
+            dimension: A string representing the timeframe for which data is required.
+                For the SF0 database only 'MRY' or most recent yearly is supported.
+                For the SF1 database available options are: MRY, MRQ, MRT,ARY,ARQ,ART
+            periods: An integer representing the number of years of data.
+            
+        Returns:
+            A dataframe containing all of the indicators for this Ticker.
+            The indicators are the columns and the time periods are the rows.
+            This is after all the next gen refactored version 
+        """
+
+    #self.stmnt_df = quandl.get_table('SHARADAR/SF1', ticker=['AAPL','INTC'],dimension="MRY")
+    # We'll get all of the data for a given ticker, then filter what we give back
+    # Will need more than they ask for for calulating CAGR values
+        try:
+            self.stmnt_df = quandl.get_table('SHARADAR/SF1', ticker=ticker,
+                                            dimension=dimension)
+            loc_df = self.stmnt_df.copy()
+            logger.debug("get_indicators: dataframe = %s" % (self.stmnt_df.head()))
+            
+        
+        except NotFoundError:
+            logger.warning('get_indicators: The ticker %s '
+                            'is not supported quandl code was %s',
+                            ticker, quandl_code)
+            raise
+
+        return loc_df
 
 class Fundamentals(object):
     def __init__(self,
@@ -642,8 +726,64 @@ class Fundamentals(object):
         return dframe
 
 
-class SharadarFundamentals(Fundamentals):
+class SharadarFundamentals_ng(Fundamentals_ng):
 
+    # the refactored version of SharadarFundamenals
+    # Locally calculated by this package. For each ratio or metric in this
+    # table, there's a routine to calculate the value from the quandl API provided
+    # statement indicator value.
+    CALCULATED_RATIOS = [
+        ("operating_margin", 'Operating Margin: (Gross Profit - Opex)/ Revenue'),
+        ("sg_and_a_gross_profit_ratio", 'SG&A to Gross Profit Ratio'),
+        ("depreciation_revenue_ratio", 'Depreciation / Revenue'),
+        ("depreciation_cfo_ratio", 'Depreciation / Cash Flow From Operations'),
+        ("ev_opinc_ratio", 'Acquirers Multiple: Enterprise Value / Operating Income'),
+        ("debt_ebitda_ratio", 'Total Debt / EBITDA'),
+        ("debt_ebitda_minus_capex_ratio", 'Total Debt / (EBITDA - CapEx)'),
+        ("net_debt_ebitda_ratio", 'Net Debt / EBITDA'),
+        ("net_debt_ebitda_minus_capex_ratio", 'Net Debt / (EBITDA - CapEx)'),
+        ("debt_equity_ratio", 'Total Debt / Shareholders Equity'),
+        ("liabilities_equity_ratio", 'Total Liabilities / Shareholders Equity'),
+        ("ebit_interest_coverage", 'EBIT / Interest Expense'),
+        ("ebitda_interest_coverage", 'EBITDA / Interest Expense'),
+        ("ebitda_minus_capex_interest_coverage", 'EBITDA - CapEx / Interest Expense'),
+        ("interest_to_cfo_plus_interest_coverage", 'Interest / (CFO + Interest'), 
+        ("debt_to_total_capital", 'Total Debt / Invested Capital'),
+        ("return_on_invested_capital", 'Return on Invested Capital: EBIT / Invested Capital'),
+        ("kjm_capital_employed_1", 'Kenneth J  Marshal Capital Employed Subtract CASH'),
+        ("kjm_capital_employed_2", 'Kenneth J  Marshal Capital Employed'),
+        ("kjm_return_on_capital_employed_1", 'KJM Return on Capital Employed subtract CASH'),
+        ("kjm_return_on_capital_employed_2", 'KJM Return on Capital Employed'),
+        # FCF is already levered since CFO  already includes the effect of interest
+        # payments.
+#        ("free_cash_flow_levered", 'FCF-Levered: FCF - Interest Expenses'),
+        ("debt_cfo_ratio", 'Total Debt / Cash Flow From Operations'),
+        ("ltdebt_cfo_ratio", 'Long Term Debt / Cash Flow From Operations'),
+        ("ltdebt_earnings_ratio", 'Long Term Debt / Income'),
+        ("rough_ffo", 'Rough FFO: Net Income plus Depreciation (missing cap gain from RE sales adjust)'),
+        ('rough_ffo_ps', 'Rough FFO per Share'),
+        ('price_rough_ffo_ps_ratio', 'Price divided by rough_ffo_ps'),
+        ('rough_ffo_dividend_payout_ratio', 'Dividends / rough_ffo'),
+        ('income_dividend_payout_ratio', 'Dividends / Net Income'),
+        ('cfo_ps', 'Cash Flow from Operations  per Share'),
+        ('dividends_cfo_ratio', 'Dividends/CFO'), 
+        ('preferred_cfo_ratio', 'Preferred Payments/CFO'), 
+        ('fcf_ps', 'Free Cash Flow per Share'),
+        ('dividends_free_cash_flow_ratio', 'Dividends/FCF'),
+        ('preferred_free_cash_flow_ratio', 'Preferred Payments/FCF'),
+        ('free_cash_flow_conversion_ratio', 'Free Cash Flow Conversion Ratio'),
+        ('excess_cash_margin_ratio', 'Excess Cash Margin Ratio')
+    ]
+
+    def __init__(self, database, writer):
+            Fundamentals_ng.__init__(self,
+                                database,
+                                self.CALCULATED_RATIOS,
+                                writer
+                                )
+
+
+class SharadarFundamentals(Fundamentals):
     # Income Statement Indicator Quandl/Sharadar Codes
     I_STMNT_IND = [
         ('REVENUE', 'Revenues'),
@@ -852,7 +992,93 @@ def stock_xlsx(outfile, stocks, database, dimension, periods):
         logger.info('Processed the stock %s', stock)
 
     writer.save()
+ 
+def stock_xlsx_refactor(outfile, stocks, database, dimension, periods):
+    # Excel Housekeeping first
+    # The writer contains books and sheets
+    writer = pd.ExcelWriter(outfile,
+                            engine='xlsxwriter',
+                            date_format='d mmmm yyyy')
 
+    # Get a stmnt dataframe, a quandl ratios dataframe and our calculated ratios dataframe
+    # for each of these frames write into a separate worksheet per stock
+    for stock in stocks:
+        fund = SharadarFundamentals_ng(database,writer)
+
+        logger.info('Processing the stock %s', stock)
+
+        shtname = '{}'.format(stock)
+
+        try:
+            i_stmnt_df = fund.get_indicators(stock, dimension, periods)
+        except NotFoundError:
+            # This is the only place where we can simply continue to another stock
+            # further down we will have already written things to a worksheet so not going to be
+            # easy to unravel, hence do not attempt to catch these.
+            logger.warning('NotFoundError when getting income stmnt indicators for the stock %s', stock)
+            continue
+        row, col = 0, 0
+
+        # Create a series containing the dataset descriptions and add as a column to our dataframe
+        # FIX ME this peeking at privates is potentially cheesy
+        # TODO migrate this to the write_df-to-excel_sheet fn
+        description_s = pd.Series(fund.i_stmnt_ind_dict)
+        # The insert method is what enables us to place the column exactly where we want it.
+        i_stmnt_df.insert(0, 'Description', description_s)
+        # Create a new column using the values from the index, similar to doing a .reset_index
+        # but uses an explicit column instead of column 0  which  reset-index  does.
+        i_stmnt_df.insert(1, 'Sharadar Fundamental Indicators' + ' ' + dimension, i_stmnt_df.index)
+
+        rows_written = fund.write_df_to_excel_sheet(i_stmnt_df, row, col,
+                                                    shtname, dimension,
+                                                    use_header=True)
+        row = row + rows_written
+
+        cf_stmnt_df = fund.get_indicators(stock, dimension, periods, "cf_stmnt")
+        description_s = pd.Series(fund.cf_stmnt_ind_dict)
+        cf_stmnt_df.insert(0, 'Description', description_s)
+        cf_stmnt_df.insert(1, 'Sharadar Fundamental Indicators', cf_stmnt_df.index)
+        rows_written = fund.write_df_to_excel_sheet(cf_stmnt_df, row, col,
+                                                    shtname,dimension,
+                                                    use_header=False)
+        row = row + rows_written
+
+        bal_stmnt_df = fund.get_indicators(stock, dimension, periods, "bal_stmnt")
+        description_s = pd.Series(fund.bal_stmnt_ind_dict)
+        bal_stmnt_df.insert(0, 'Description', description_s)
+        bal_stmnt_df.insert(1, 'Sharadar Fundamental Indicators', bal_stmnt_df.index)
+        rows_written = fund.write_df_to_excel_sheet(bal_stmnt_df, row, col,
+                                                    shtname,dimension,
+                                                    use_header=False)
+        row = row + rows_written
+
+        # Now for the metrics and ratios from the quandl API
+        metrics_and_ratios_ind = fund.get_indicators(stock, dimension, periods,
+                                                     'metrics_and_ratios')
+
+        description_s = pd.Series(fund.metrics_and_ratios_ind_dict)
+        metrics_and_ratios_ind.insert(0, 'Description', description_s)
+        metrics_and_ratios_ind.insert(1, 'Sharadar Metrics and Ratio Indicators',
+                                      metrics_and_ratios_ind.index)
+
+        row = row + 2
+        rows_written = fund.write_df_to_excel_sheet(metrics_and_ratios_ind, row, col,
+                                                    shtname, dimension)
+        row = row + rows_written
+
+        # Now calculate some of the additional ratios for credit analysis
+        calculated_ratios_df = fund.get_calc_ratios()
+        description_s = pd.Series(fund.calc_ratios_dict)
+        calculated_ratios_df.insert(0, 'Description', description_s)
+        calculated_ratios_df.insert(1, 'Calculated Metrics and Ratios', calculated_ratios_df.index)
+
+        row = row + 2
+        rows_written = fund.write_df_to_excel_sheet(calculated_ratios_df, row, col,
+                                                    shtname, dimension)
+        logger.info('Processed the stock %s', stock)
+
+    writer.save()
+ 
 
 def main():
 
@@ -862,7 +1088,32 @@ def main():
     periods = 5
 
     outfile = 'quandl_ratios.xlsx'
-    stock_xlsx(outfile, stocks, "SF0", 'MRY', periods)
+    # stock_xlsx(outfile, stocks, "SF0", 'MRY', periods)
+    stock_xlsx_refactor(outfile, stocks, "SF0", 'MRY', periods)
+    # Refactor: Do this by leaving the existing stock_xlsx intact so we can refer
+    # to how do write to teh excel sheet for example.
+    # First off, do similar to what I did in Juniper notebook
+    # Get the whole df at one time.
+    # Transpose as the snippet in Save-goodies shows
+    # Call our write_df_to_excel_sheet, coercing the correct parameters.
+    # Don't tryt to perform custom calcs or CAGR calcs at this time. 
+    # ( recall we can use shift for CAGR, when we need to do it)
+    # When we do need to compute cagr we should do it with the time series as the column and save off a new pandas 
+    # series with all of the CAGR values.
+
+    # do one stock per df at this time, hold off on the fancy groupby and getting all stocks together.
+    # we can, later, store each ticker DF in an ordered dict indexed by ticker.  Maybe! Would a multi-index df help or 
+    # be overkill
+
+    # the end goal will be to have a dataframe with  ratios along the top and with CAGR values as some of these
+    # columns e.g  OCF-5-CAGR. The rows will be tickers and this combined df will be written to a table.
+    # In fact I do not need to optimize my writing of the data to teh individual ticker sheets. I should but that's 
+    # going to be just for reference.
+    # Use term QoQ for the quarterly change in a value.
+    # Use the term YoY for the yearly change
+    # The for some there's a longer trend, the 5YrCAGR
+
+    # Do I want to have a CAGR value displayed for each ratio I calculate ?
 
 
 if __name__ == '__main__':

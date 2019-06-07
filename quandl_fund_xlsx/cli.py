@@ -28,6 +28,7 @@ Options:
 # otherwise the docopt module does not work.
 from docopt import docopt
 from .fundamentals import stock_xlsx
+from .fundamentals import stock_xlsx_refactor
 import pathlib
 import sys
 
@@ -62,7 +63,8 @@ def main(args=None):
         sys.exit()
 
     print("Output will be written to {}".format(outfile))
-    stock_xlsx(outfile, tickers, database, dimension, years)
+  #  stock_xlsx(outfile, tickers, database, dimension, years)
+    stock_xlsx_refactor(outfile, tickers, database, dimension, years)
 
 
 if __name__ == '__main__':
