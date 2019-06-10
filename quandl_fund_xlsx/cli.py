@@ -59,8 +59,11 @@ def main(args=None):
 
     path = pathlib.Path(outfile)
     if path.exists():
-        print("Output file {} exists".format(outfile))
-        sys.exit()
+        print("Output file {} exists do you wish to replace it? (y/n)".format(outfile))
+        response = input("Overwrite {} (y/n)".format(outfile)).lower()
+        if response != "y":
+          print("You replied {}, Exiting".format(response))
+          sys.exit()
 
     print("Output will be written to {}".format(outfile))
   #  stock_xlsx(outfile, tickers, database, dimension, years)
