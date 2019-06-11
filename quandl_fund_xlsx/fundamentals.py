@@ -137,8 +137,6 @@ class Fundamentals_ng(object):
         
         # Let's copy the relevant column data to the income statement df
         # the cash flow statementdf etc
-        #UPTO, questioning if we need these additional dataframes. Was only for the calc_ratios that we thought
-        # was wise to keep. 
 
         self.i_stmnt_df = self.all_inds_df[self.i_stmnt_ind_dict.keys()].copy()
         self.cf_stmnt_df = self.all_inds_df[self.cf_stmnt_ind_dict.keys()].copy()
@@ -148,6 +146,108 @@ class Fundamentals_ng(object):
         logger.debug("get_indicators: income dataframe = %s" % (self.i_stmnt_df.head()))
 
         return loc_df
+
+
+    def write_df_to_excel_sheet(self, dframe, row, col,
+                                sheetname,
+                                dimension,
+                                use_header=True,
+                                num_text_cols=2):
+        """Writes a dataframe to an excel worksheet.
+        Args:
+            dframe: A Pandas dataframe. The index must have been promoted to
+                a column (using df.) prior to calling.
+            row: An int, the row to start writing at, zero based.
+            col: An int, the col to start writing at, zero based.
+            sheetname: A string, the desired name for the sheet.
+            dimension: A string representing the timeframe for which data is required.
+                For the SF0 sample database only 'MRY' or most recent yearly is supported.
+                For the SF1 database available options are: MRY, MRQ, MRT,ARY,ARQ,ART
+            use_header: Whether to print the header of the dataframe
+            num_text_cols: The number of columns which contain text. The remainder
+                of the columns are assumed to create numeric values.
+        Returns:
+            rows_written: The number of rows written.
+
+        """
+
+        # logging.debug("write_df_to_excel_sheet: dataframe = %s" % ( dframe.info()))
+        # We need to write out the df first using to_excel to obtain a
+        # worksheet object which we'll then operate on for formatting.
+        # We do not write the header using to_excel but explicitly write
+        # later with Xlsxwriter.
+
+        if use_header is True:
+            start_row = row + 1
+        else:
+            start_row = row
+        dframe.to_excel(self.writer, sheet_name=sheetname, startcol=col,
+                        startrow=start_row, index=False, header=False)
+        worksheet = self.writer.sheets[sheetname]
+        rows_written = len(dframe.index)
+
+        num_cols = len(dframe.columns.values)
+
+        # Format the text columns and the numeric ones following these.
+        worksheet.set_column(0, num_text_cols - 1, 40, self.format_justify)
+        worksheet.set_column(num_text_cols, num_cols, 16, self.format_justify)
+
+        numeric_data_range = xl_range(start_row, col + num_text_cols,
+                                      start_row + rows_written, col + num_cols)
+        worksheet.conditional_format(numeric_data_range, {
+            'type': 'cell',
+            'criteria': 'between',
+            'minimum': -100,
+            'maximum': 100,
+            'format': self.format_commas
+        })
+        worksheet.conditional_format(numeric_data_range, {
+            'type': 'cell',
+            'criteria': 'not between',
+            'minimum': -100,
+            'maximum': 100,
+            'format': self.format_commas_2dec
+        })
+
+        # Lets figure out CAGR for a given row item
+        num_numeric_cols = num_cols - num_text_cols
+        cagr_col = col + num_cols
+        begin_cagr_calc_col = num_text_cols
+        end_cagr_calc_col = cagr_col -1
+        for cagr_row in range(start_row, start_row + rows_written):
+            # looks like I'll need to use  xl_rowcol_to_cell()
+            beg_val = xl_rowcol_to_cell(cagr_row,begin_cagr_calc_col)
+            end_val = xl_rowcol_to_cell(cagr_row,end_cagr_calc_col)
+
+            if dimension == 'MRY' or dimension == 'ARY':
+                # We want the number of periods between the years.
+                years = end_cagr_calc_col - begin_cagr_calc_col 
+            else: 
+                # Theres a quarter between each reporting period
+                years = (end_cagr_calc_col - begin_cagr_calc_col)/4
+                
+            #formula = '=({end_val}/{beg_val})^(1/{years}) - 1'.format(beg_val=beg_val,end_val=end_val,years=years)
+            formula = '=IFERROR(({end_val}/{beg_val})^(1/{years}) - 1,\"\")'.format(beg_val=beg_val,end_val=end_val,years=years)
+            worksheet.write(cagr_row, cagr_col,formula)
+
+
+        # Sparklines make data trends easily visible
+        spark_col = cagr_col + 1
+        worksheet.set_column(spark_col, spark_col, 20)
+
+        for spark_row in range(start_row, start_row + rows_written):
+            numeric_data_row_range = xl_range(spark_row, col + num_text_cols,
+                                              spark_row, col + cagr_col -1)
+            worksheet.add_sparkline(spark_row, spark_col, {'range': numeric_data_row_range,
+                                                            'markers': 'True'})
+
+        if use_header is True:
+            for column, hdr in zip(range(col, num_cols + col), dframe.columns.values.tolist()):
+                worksheet.write_string(row, column, hdr, self.format_bold)
+
+        rows_written += 1
+        return rows_written
+
 
 class Fundamentals(object):
     def __init__(self,
@@ -282,7 +382,7 @@ class Fundamentals(object):
         """Writes a dataframe to an excel worksheet.
         Args:
             dframe: A Pandas dataframe. The index must have been promoted to
-                a column (using df.reset_index) prior to calling.
+                a column (using df.) prior to calling.
             row: An int, the row to start writing at, zero based.
             col: An int, the col to start writing at, zero based.
             sheetname: A string, the desired name for the sheet.
@@ -763,6 +863,7 @@ class SharadarFundamentals_ng(Fundamentals_ng):
     # statement indicator value.
 
     I_STMNT_IND = [
+        ('datekey','SEC filing date'),
         ('revenue', 'Revenues'),
         ('gp', 'Gross Profit'),
         ('sgna', 'Sales General and Admin'),
@@ -781,6 +882,7 @@ class SharadarFundamentals_ng(Fundamentals_ng):
 
     # Cash Flow Statement Indicator Quandl/Sharadar Codes
     CF_STMNT_IND = [
+        ('datekey','SEC filing date'),
         ('depamor', 'Depreciation and Amortization'),
         ('ncfo', 'Net Cash Flow From Operations'),
         ('ncfi', 'Net Cash Flow From Investing'),
@@ -791,6 +893,7 @@ class SharadarFundamentals_ng(Fundamentals_ng):
 
     # Balance Statement Indicator Quandl/Sharadar Codes
     BAL_STMNT_IND = [
+        ('datekey','SEC filing date'),
         ('assets', 'Total Assets'),
         ('assetsnc', 'Non Current Assets'),
         ('cashnequsd', 'Cash and Equivalents (USD)'),
@@ -807,6 +910,7 @@ class SharadarFundamentals_ng(Fundamentals_ng):
     ]
     # Metrics and Ratio  Indicator Quandl/Sharadar Codes
     METRICS_AND_RATIOS_IND = [
+        ('datekey','SEC filing date'),
         #    ('DE', 'Debt to Equity Ratio'), Needs to be locally calculated when
         #    using TTM figures
         ('ev', 'Enterprise Value'),
@@ -1098,46 +1202,72 @@ def stock_xlsx_refactor(outfile, stocks, database, dimension, periods):
 
         shtname = '{}'.format(stock)
 
-        #UPTO WE not we return all indicators from the fund_get_incicators.
-        # We do have sepearate income_dfs and cf dfs just like before but so far it looks like 
-        # we will need these for out custom calcs
         try:
-            i_stmnt_df = fund.get_indicators(stock, dimension, periods)
+            fund.get_indicators(stock, dimension, periods)
         except NotFoundError:
-            # This is the only place where we can simply continue to another stock
-            # further down we will have already written things to a worksheet so not going to be
-            # easy to unravel, hence do not attempt to catch these.
             logger.warning('NotFoundError when getting indicators for the stock %s', stock)
             continue
+        
         row, col = 0, 0
-
-        # NG comment, we've not trasnposed our df and still have dates as rowsn and all indicators as columns
-        # would do this below step after transposing if we do it at all
-        # Create a series containing the dataset descriptions and add as a column to our dataframe
-        # FIX ME this peeking at privates is potentially cheesy
-        # TODO migrate this to the write_df-to-excel_sheet fn
-        # NG _ comment I still agree with the above of fixing up stuff in the write to excel sheet routine
-
-        # NG  We do alos need to write a separate df at a time so we get teh separation of income, cf cal etc.
+        # Delete all of this rambling eventually
+        # NG comment, we've not trasnposed our df and still have dates as rows and all indicators as columns
+        #
+        # NG  We do also need to write a separate df at a time so we get the separation of income, cf cal etc.
+        # Or we could just pull these items out of the all_df. 
+        # Will also need to pull items out of the changes df. 
+        # 
+        # on an as needed basis.
         # We should  have a higher level write_fundamentals method of the Fundamentals_ng class
         # Then this can do all of this monkeying around and call a lower level _write_df_to_excel_sheeet
 
         # All we should be doing here is calling the fund.get_calc_ratios.
         # Perhaps a new fund.get_cagrs to get teh growth
         # Then  a write to excel function.
+        # Let's try to write the fund_df to excel to get us back to a working something
+        # This will be needed at al ow level printing to exceldescription_s = pd.Series(fund.i_stmnt_ind_dict)
+        #description = fund_df.columns.tolist()
 
+        # will  need to transpose so we get teh dates as columns ( after all calcs have been done).
+        # Then insert these descriptions as a new columm
+        # This is allexperimental since we might well have multiple  dfs to pass into write to excel.
+        # UPTO
+        # TODO We need to expliclt copy the datekey column over if we are creating separate income dataframes
+        # cash flow dataframes. I've flip fliopped on this multiple times.
+        # If we stick with one big dataframe, containing the whole table then ce can selctively contruct the thing to be 
+        # writtent to excel, either at this level of inside the write to excel.
+        # So .... :-) Let's stick with one big one and figure out how to selectively print so we can have the nice income statements elements ( with CAGR and YoY)
+        # Then cash flow then balance ( as we have today).
+        # Then cust calcs.
+
+        # 
+        i_stmnt_df =  fund.i_stmnt_df
+
+        i_stmnt_df.set_index('datekey',inplace=True)
+        
+        # Transpose now as we start to get this  df ready for printing 
+        # Convert teh df so that we have the indicators as rows and datefields as columns
+        # in fact the indicators should be the index
+        i_stmnt_trans_df = i_stmnt_df.transpose()
+        i_stmnt_trans_df.columns = i_stmnt_trans_df.columns.map(lambda t: t.strftime('%Y-%m-%d'))
+
+        # Now we want two additional  descriptive columns for when we print the df to
+        # an excel sheet. We want the  Decscription of the indicator and the Sharadar code
+        # Note that dictionary keys, in this case the Sharadar Indicator code
+        # becomes the index of the  newly created Pandas series
         description_s = pd.Series(fund.i_stmnt_ind_dict)
         # The insert method is what enables us to place the column exactly where we want it.
-        i_stmnt_df.insert(0, 'Description', description_s)
+
+        i_stmnt_trans_df.insert(0, 'Description', description_s)
         # Create a new column using the values from the index, similar to doing a .reset_index
         # but uses an explicit column instead of column 0  which  reset-index  does.
-        i_stmnt_df.insert(1, 'Sharadar Fundamental Indicators' + ' ' + dimension, i_stmnt_df.index)
+        i_stmnt_trans_df.insert(1, 'Sharadar Fundamental Indicators' + ' ' + dimension, i_stmnt_trans_df.index)
 
-        rows_written = fund.write_df_to_excel_sheet(i_stmnt_df, row, col,
+        rows_written = fund.write_df_to_excel_sheet(i_stmnt_trans_df, row, col,
                                                     shtname, dimension,
                                                     use_header=True)
         row = row + rows_written
-
+        # Add this cheecky save to get a spreadsheet to look at
+        writer.save()
         cf_stmnt_df = fund.get_indicators(stock, dimension, periods, "cf_stmnt")
         description_s = pd.Series(fund.cf_stmnt_ind_dict)
         cf_stmnt_df.insert(0, 'Description', description_s)

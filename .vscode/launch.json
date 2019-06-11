@@ -9,7 +9,8 @@
             "type": "python",
             "request": "launch",
             "module": "quandl_fund_xlsx.cli",
-            "args": ["-t", "MSFT"]
+            "args": ["-t", "MSFT", "--database", "SF1"],
+            
         }
     ]
 }
