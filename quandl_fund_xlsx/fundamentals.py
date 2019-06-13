@@ -36,7 +36,6 @@ logger.addHandler(handler)
 logger.setLevel(logging.DEBUG)
 
 
-# Can we extract the Indicators from the column names of the overall dataframe
 class Fundamentals_ng(object):
     def __init__(self,
                  database,
@@ -75,6 +74,8 @@ class Fundamentals_ng(object):
         self.metrics_and_ratios_df = None
         self.calc_ratios_dict = collections.OrderedDict(calc_ratios)
         self.calc_ratios_df = None
+        self.dimension = None
+        self.periods = None
 
         self.writer = writer
         self.workbook = writer.book
@@ -142,11 +143,85 @@ class Fundamentals_ng(object):
         self.cf_stmnt_df = self.all_inds_df[self.cf_stmnt_ind_dict.keys()].copy()
         self.bal_stmnt_df = self.all_inds_df[self.bal_stmnt_ind_dict.keys()].copy()
         self.metrics_and_ratios_df = self.all_inds_df[self.metrics_and_ratios_ind_dict.keys()].copy()
+        self.dimension = dimension
+        self.periods = periods
 
         logger.debug("get_indicators: income dataframe = %s" % (self.i_stmnt_df.head()))
 
         return loc_df
 
+    def get_trans_fmt_i_stmnt(self):
+        """ Returns a transposed income statement dataframe with description added
+        ready for printing to an excel sheet, or possible via html in the future.
+        The Transposed dataframe with added description columns is much easier to read.
+
+        Returns:
+            A dataframe
+        """
+        stmnt_df = self.i_stmnt_df.copy()
+        desc_dict = self.i_stmnt_ind_dict
+        description = "Sharadar Income"
+        return self.__trans_fmt_stmnt(stmnt_df, desc_dict, description)
+        
+    def get_trans_fmt_cf_stmnt(self):
+        stmnt_df = self.cf_stmnt_df.copy()
+        desc_dict = self.cf_stmnt_ind_dict
+        description = "Sharadar Cash Flow"
+        return self.__trans_fmt_stmnt(stmnt_df, desc_dict, description)
+        
+    def get_trans_fmt_bal_stmnt(self):
+        stmnt_df = self.bal_stmnt_df.copy()
+        desc_dict = self.bal_stmnt_ind_dict
+        description = "Sharadar Balance"
+
+        return self.__trans_fmt_stmnt(stmnt_df, desc_dict,description)
+
+    def get_trans_fmt_metrics_and_ratios(self):
+        stmnt_df = self.metrics_and_ratios_df.copy()
+        desc_dict = self.metrics_and_ratios_ind_dict
+        description = "Sharadar Metrics and Ratios"
+
+        return self.__trans_fmt_stmnt(stmnt_df, desc_dict,description)
+        
+    def __trans_fmt_stmnt(self, stmnt_df,description_dict,description_of_indictors):
+        """ Convert the df so that we have the indicators as rows and datefields as columns
+
+            Side effects. Modifies the passed in dataframe.
+        """
+        # As a precursor to making the datefiels as comunt we set the datefield as the index.
+        # We then transpose the df such that the index becomes the columns and tge columns become rows
+        stmnt_df.set_index('datekey',inplace=True)
+
+        # Transpose to get this dataframe ready for printing 
+        # Convert the df so that we have the indicators as rows and datefields as columns
+        ret_df = stmnt_df.transpose()
+
+        # The columns are of a dateTime type, we need them to be text in order for the dataframe 
+        # to excel module to work. 
+        ret_df.columns = ret_df.columns.map(lambda t: t.strftime('%Y-%m-%d'))
+
+        
+        # Now we want two additional descriptive columns in the dataframe.
+        # We want the  Description of the indicator in one column and the Sharadar code
+        # in another.
+        # Note that dictionary keys, in this case the Sharadar Indicator code
+        # becomes the index of the newly created Pandas series. The values become the data associated 
+        # with these keys. 
+        description_s = pd.Series(description_dict)
+        
+        # The insert method is what enables us to place the column exactly where we want it.
+        ret_df.insert(0, 'Description', description_s)
+
+        # For the second column, the sharadar codes, we can get the manes of these from the index of our
+        # dataframe. So a variation on the previous case where we inserted a column from a PD series. Here
+        # we point to an array like item which the insert method accepts, that of the dataframe index. After
+        # the transpose this contains  what were the column i.e the Sharadar indicators. 
+        # 
+        # Create a new column using the values from the index, similar to doing a .reset_index
+        # but uses an explicit column instead of column 0  which  reset-index  does.
+        ret_df.insert(1, description_of_indictors + ' ' + self.dimension, ret_df.index)
+
+        return ret_df
 
     def write_df_to_excel_sheet(self, dframe, row, col,
                                 sheetname,
@@ -1209,91 +1284,44 @@ def stock_xlsx_refactor(outfile, stocks, database, dimension, periods):
             continue
         
         row, col = 0, 0
-        # Delete all of this rambling eventually
-        # NG comment, we've not trasnposed our df and still have dates as rows and all indicators as columns
-        #
-        # NG  We do also need to write a separate df at a time so we get the separation of income, cf cal etc.
-        # Or we could just pull these items out of the all_df. 
-        # Will also need to pull items out of the changes df. 
-        # 
-        # on an as needed basis.
-        # We should  have a higher level write_fundamentals method of the Fundamentals_ng class
-        # Then this can do all of this monkeying around and call a lower level _write_df_to_excel_sheeet
-
-        # All we should be doing here is calling the fund.get_calc_ratios.
-        # Perhaps a new fund.get_cagrs to get teh growth
-        # Then  a write to excel function.
-        # Let's try to write the fund_df to excel to get us back to a working something
-        # This will be needed at al ow level printing to exceldescription_s = pd.Series(fund.i_stmnt_ind_dict)
-        #description = fund_df.columns.tolist()
-
-        # will  need to transpose so we get teh dates as columns ( after all calcs have been done).
-        # Then insert these descriptions as a new columm
-        # This is allexperimental since we might well have multiple  dfs to pass into write to excel.
-        # UPTO
-        # TODO We need to expliclt copy the datekey column over if we are creating separate income dataframes
-        # cash flow dataframes. I've flip fliopped on this multiple times.
-        # If we stick with one big dataframe, containing the whole table then ce can selctively contruct the thing to be 
-        # writtent to excel, either at this level of inside the write to excel.
-        # So .... :-) Let's stick with one big one and figure out how to selectively print so we can have the nice income statements elements ( with CAGR and YoY)
-        # Then cash flow then balance ( as we have today).
-        # Then cust calcs.
-
-        # 
-        i_stmnt_df =  fund.i_stmnt_df
-
-        i_stmnt_df.set_index('datekey',inplace=True)
         
-        # Transpose now as we start to get this  df ready for printing 
-        # Convert teh df so that we have the indicators as rows and datefields as columns
-        # in fact the indicators should be the index
-        i_stmnt_trans_df = i_stmnt_df.transpose()
-        i_stmnt_trans_df.columns = i_stmnt_trans_df.columns.map(lambda t: t.strftime('%Y-%m-%d'))
-
-        # Now we want two additional  descriptive columns for when we print the df to
-        # an excel sheet. We want the  Decscription of the indicator and the Sharadar code
-        # Note that dictionary keys, in this case the Sharadar Indicator code
-        # becomes the index of the  newly created Pandas series
-        description_s = pd.Series(fund.i_stmnt_ind_dict)
-        # The insert method is what enables us to place the column exactly where we want it.
-
-        i_stmnt_trans_df.insert(0, 'Description', description_s)
-        # Create a new column using the values from the index, similar to doing a .reset_index
-        # but uses an explicit column instead of column 0  which  reset-index  does.
-        i_stmnt_trans_df.insert(1, 'Sharadar Fundamental Indicators' + ' ' + dimension, i_stmnt_trans_df.index)
-
+        
+        i_stmnt_trans_df =  fund.get_trans_fmt_i_stmnt()
         rows_written = fund.write_df_to_excel_sheet(i_stmnt_trans_df, row, col,
                                                     shtname, dimension,
                                                     use_header=True)
-        row = row + rows_written
-        # Add this cheecky save to get a spreadsheet to look at
-        writer.save()
-        cf_stmnt_df = fund.get_indicators(stock, dimension, periods, "cf_stmnt")
-        description_s = pd.Series(fund.cf_stmnt_ind_dict)
-        cf_stmnt_df.insert(0, 'Description', description_s)
-        cf_stmnt_df.insert(1, 'Sharadar Fundamental Indicators', cf_stmnt_df.index)
-        rows_written = fund.write_df_to_excel_sheet(cf_stmnt_df, row, col,
+        row = row + rows_written + 1
+       
+        # UPTO TODO implement the get_trans_fmt_i_stmnt call it and continue
+        # Perhaps get rid of teh spark lines since we're going back in time
+        # And get rid of the CAGR excel calcs.
+        # Have to fgure out how to incorporate CAGRS and YOY. 
+        # as long as we add all of these to the relevant df e.g the fund.i_stmnt_df then the rest should fll  out.
+        # I would need to add to the  initial tuple lists to ensure we had a description for each cagr tuple.
+        # would also have to build these columns up bit by bit.
+        # So maybe go sparing on CAGRS, and look for ones I want to compare in the future summary sheet work
+  
+        cf_stmnt_trans_df =  fund.get_trans_fmt_cf_stmnt()
+        rows_written = fund.write_df_to_excel_sheet(cf_stmnt_trans_df, row, col,
                                                     shtname,dimension,
-                                                    use_header=False)
-        row = row + rows_written
-
-        bal_stmnt_df = fund.get_indicators(stock, dimension, periods, "bal_stmnt")
-        description_s = pd.Series(fund.bal_stmnt_ind_dict)
-        bal_stmnt_df.insert(0, 'Description', description_s)
-        bal_stmnt_df.insert(1, 'Sharadar Fundamental Indicators', bal_stmnt_df.index)
-        rows_written = fund.write_df_to_excel_sheet(bal_stmnt_df, row, col,
+                                                    use_header=True)
+        row = row + rows_written + 1
+        
+        bal_stmnt_trans_df =  fund.get_trans_fmt_bal_stmnt()
+        rows_written = fund.write_df_to_excel_sheet(bal_stmnt_trans_df, row, col,
                                                     shtname,dimension,
-                                                    use_header=False)
-        row = row + rows_written
-
+                                                    use_header=True)
+        row = row + rows_written + 1
+        
         # Now for the metrics and ratios from the quandl API
-        metrics_and_ratios_ind = fund.get_indicators(stock, dimension, periods,
-                                                     'metrics_and_ratios')
+        metrics_and_ratios_df =  fund.get_trans_fmt_metrics_and_ratios()
+        rows_written = fund.write_df_to_excel_sheet(metrics_and_ratios_df, row, col,
+                                                    shtname,dimension,
+                                                    use_header=True)
+        row = row + rows_written + 1
 
-        description_s = pd.Series(fund.metrics_and_ratios_ind_dict)
-        metrics_and_ratios_ind.insert(0, 'Description', description_s)
-        metrics_and_ratios_ind.insert(1, 'Sharadar Metrics and Ratio Indicators',
-                                      metrics_and_ratios_ind.index)
+        writer.save()
+
 
         row = row + 2
         rows_written = fund.write_df_to_excel_sheet(metrics_and_ratios_ind, row, col,
