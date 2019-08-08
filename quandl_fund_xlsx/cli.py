@@ -27,7 +27,6 @@ Options:
 # the imports have to be under the docstring
 # otherwise the docopt module does not work.
 from docopt import docopt
-from .fundamentals import stock_xlsx
 from .fundamentals import stock_xlsx_refactor
 import pathlib
 import sys
