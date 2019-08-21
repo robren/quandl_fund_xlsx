@@ -327,18 +327,18 @@ class Fundamentals_ng(object):
         """Obtain some financial ratios and metrics skewed towards credit analysis.
         - Some suggested as useful in the book by Fridson and Alvarez:
         'Financial Statement Analysis'.
-        - Others  are credit sanity checking or rough approximations to REIT
+        - Others are credit sanity checking or rough approximations to REIT
           specific ratios.
 
         Returns:
             A dataframe containing financial ratios.
         """
-        # Uses the column names from one of the previously returned dataframes
-        # These being the dates.
-        # FIXME TODO   UPTO this is where is was using the already  transposed dataframe
-        # we could  and is doing I think, row by row math which is not the way things should be done, should do 
-        # column by column
-        self.calc_ratios_df = pd.DataFrame(columns=self.i_stmnt_df.columns)
+        # Note updated to work on our data in the form where the rows as the dates and the columns are the metricss.
+        # we build up each metric as a new column in the calc_ratios df.
+        
+        # initialize an empty calc_ratios_df but using the same indexing as our existing dataframes which we've pulled 
+        # in from sharadar
+        self.calc_ratios_df = pd.DataFrame(index=self.i_stmnt_df.index)
 
         for ratio in self.calc_ratios_dict:
             logger.debug("get_calc_ratios: ratio = %s" % (ratio))
@@ -350,33 +350,33 @@ class Fundamentals_ng(object):
     def _calc_ratios(self, ratio):
         # Debt to Cash Flow From Operations
         def _debt_cfo_ratio():
-            logger.debug("_calc_ratios._debt_cfo_ratio: debt = %s" % (self.bal_stmnt_df.loc['debt']))
+            logger.debug("_calc_ratios._debt_cfo_ratio: debt = %s" % (self.bal_stmnt_df['debt']))
 
-            self.calc_ratios_df.loc[ratio] = \
-                self.bal_stmnt_df.loc['debt']/self.cf_stmnt_df.loc['ncfo']
+            self.calc_ratios_df[ratio] = \
+                self.bal_stmnt_df['debt']/self.cf_stmnt_df['ncfo']
             return
 
         # Debt to Equity
         def _debt_equity_ratio():
-            logger.debug("_calc_ratios._debt_equity_ratio: debt = %s" % (self.bal_stmnt_df.loc['debt']))
+            logger.debug("_calc_ratios._debt_equity_ratio: debt = %s" % (self.bal_stmnt_df['debt']))
             logger.debug("_calc_ratios._debt_equity_ratio: equity = %s" %
-                    (self.bal_stmnt_df.loc['equity']))
-            self.calc_ratios_df.loc[ratio] = \
-                self.bal_stmnt_df.loc['debt']/self.bal_stmnt_df.loc['equity']
+                    (self.bal_stmnt_df['equity']))
+            self.calc_ratios_df[ratio] = \
+                self.bal_stmnt_df['debt']/self.bal_stmnt_df['equity']
             return
         def _liabilities_equity_ratio():
             logger.debug("_calc_ratios._liabilities_equity:_ratio liabilities = %s" %
-                    (self.bal_stmnt_df.loc['liabilities']))
+                    (self.bal_stmnt_df['liabilities']))
             logger.debug("_calc_ratios._liabilities_equity_ratio: equity = %s" %
-                    (self.bal_stmnt_df.loc['equity']))
-            self.calc_ratios_df.loc[ratio] = \
-                self.bal_stmnt_df.loc['liabilities']/self.bal_stmnt_df.loc['equity']
+                    (self.bal_stmnt_df['equity']))
+            self.calc_ratios_df[ratio] = \
+                self.bal_stmnt_df['liabilities']/self.bal_stmnt_df['equity']
             return
 
         # Debt to ebitda
         def _debt_ebitda_ratio():
-            self.calc_ratios_df.loc[ratio] = \
-                self.bal_stmnt_df.loc['debt']/self.metrics_and_ratios_df.loc['ebitda']
+            self.calc_ratios_df[ratio] = \
+                self.bal_stmnt_df['debt']/self.metrics_and_ratios_df['ebitda']
             return
 
         # Debt to ebitda minus CapEx
@@ -384,46 +384,46 @@ class Fundamentals_ng(object):
 
             # capex is returned from Sharadar as a -ve number, hence we need to add this to
             # subtract capex
-            self.calc_ratios_df.loc[ratio] = \
-                self.bal_stmnt_df.loc['debt']/ \
-                (self.metrics_and_ratios_df.loc['ebitda'] + self.cf_stmnt_df.loc['capex'])
+            self.calc_ratios_df[ratio] = \
+                self.bal_stmnt_df['debt']/ \
+                (self.metrics_and_ratios_df['ebitda'] + self.cf_stmnt_df['capex'])
             return
 
         # Net Debt to ebitda
         def _net_debt_ebitda_ratio():
-            self.calc_ratios_df.loc[ratio] = \
-                (self.bal_stmnt_df.loc['debt'] - self.bal_stmnt_df.loc['cashnequsd']) / self.metrics_and_ratios_df.loc['ebitda']
+            self.calc_ratios_df[ratio] = \
+                (self.bal_stmnt_df['debt'] - self.bal_stmnt_df['cashnequsd']) / self.metrics_and_ratios_df['ebitda']
             return
 
         # Net Debt to ebitda minus CapEx
         def _net_debt_ebitda_minus_capex_ratio():
             # capex is returned from Sharadar as a -ve number, hence we need to add this to
             # subtract capex
-            self.calc_ratios_df.loc[ratio] = \
-                (self.bal_stmnt_df.loc['debt'] - self.bal_stmnt_df.loc['cashnequsd']) /  \
-                (self.metrics_and_ratios_df.loc['ebitda'] + self.cf_stmnt_df.loc['capex'])
+            self.calc_ratios_df[ratio] = \
+                (self.bal_stmnt_df['debt'] - self.bal_stmnt_df['cashnequsd']) /  \
+                (self.metrics_and_ratios_df['ebitda'] + self.cf_stmnt_df['capex'])
             return
 
 
         # Depreciation to Cash Flow From Operations Pg 278.
         def _depreciation_cfo_ratio():
-            self.calc_ratios_df.loc[ratio] = \
-                self.cf_stmnt_df.loc['depamor']/self.cf_stmnt_df.loc['ncfo']
+            self.calc_ratios_df[ratio] = \
+                self.cf_stmnt_df['depamor']/self.cf_stmnt_df['ncfo']
             return
 
         def _depreciation_revenue_ratio():
-            self.calc_ratios_df.loc[ratio] = \
-                self.cf_stmnt_df.loc['depamor']/self.i_stmnt_df.loc['revenue']
+            self.calc_ratios_df[ratio] = \
+                self.cf_stmnt_df['depamor']/self.i_stmnt_df['revenue']
             return
 
         def _debt_to_total_capital():
-            self.calc_ratios_df.loc[ratio] = \
-                self.bal_stmnt_df.loc['debt']/self.metrics_and_ratios_df.loc['invcapavg']
+            self.calc_ratios_df[ratio] = \
+                self.bal_stmnt_df['debt']/self.metrics_and_ratios_df['invcapavg']
             return
 
         def _roic():
-            self.calc_ratios_df.loc[ratio] = \
-                self.i_stmnt_df.loc['ebit']/self.metrics_and_ratios_df.loc['invcapavg'] 
+            self.calc_ratios_df[ratio] = \
+                self.i_stmnt_df['ebit']/self.metrics_and_ratios_df['invcapavg'] 
 #        self.database =  database
 
         # Times Interest coverage aka fixed charge coverage Pg 278.
@@ -431,81 +431,81 @@ class Fundamentals_ng(object):
         # Cannot see how to get capitalized interest from the API so that term is excluded.
         # This is the same as ebit to Interest Expense
         def _ebit_interest_coverage():
-            self.calc_ratios_df.loc[ratio] = \
-                self.i_stmnt_df.loc['ebit']/self.i_stmnt_df.loc['intexp']
+            self.calc_ratios_df[ratio] = \
+                self.i_stmnt_df['ebit']/self.i_stmnt_df['intexp']
             return
 
         def _ebitda_interest_coverage():
-            self.calc_ratios_df.loc[ratio] = \
-                self.metrics_and_ratios_df.loc['ebitda']/self.i_stmnt_df.loc['intexp']
+            self.calc_ratios_df[ratio] = \
+                self.metrics_and_ratios_df['ebitda']/self.i_stmnt_df['intexp']
             return
 
         def _ebitda_minus_capex_interest_coverage():
             # Recall that capex is returned from Sharadar as a -ve number.
-            self.calc_ratios_df.loc[ratio] = \
-            (self.metrics_and_ratios_df.loc['ebitda'] + self.cf_stmnt_df.loc['capex']) / \
-                self.i_stmnt_df.loc['intexp']
+            self.calc_ratios_df[ratio] = \
+            (self.metrics_and_ratios_df['ebitda'] + self.cf_stmnt_df['capex']) / \
+                self.i_stmnt_df['intexp']
             return
 
         def _rough_ffo():
-            self.calc_ratios_df.loc[ratio] = \
-                self.i_stmnt_df.loc['netinc'] + self.cf_stmnt_df.loc['depamor']
+            self.calc_ratios_df[ratio] = \
+                self.i_stmnt_df['netinc'] + self.cf_stmnt_df['depamor']
             return
 
         def _rough_affo():
             # capex is returned from Quandl as a -ve number, hence we add this to
             # subtract capex
-            self.calc_ratios_df.loc[ratio] = \
-                self.i_stmnt_df.loc['netinc'] + self.cf_stmnt_df.loc['depamor'] + \
-                self.cf_stmnt_df.loc['capex']
+            self.calc_ratios_df[ratio] = \
+                self.i_stmnt_df['netinc'] + self.cf_stmnt_df['depamor'] + \
+                self.cf_stmnt_df['capex']
             return
 
         def _rough_ffo_dividend_payout_ratio():
-            self.calc_ratios_df.loc[ratio] = \
-               self.cf_stmnt_df.loc['ncfdiv'] / \
-               (self.i_stmnt_df.loc['netinc'] + self.cf_stmnt_df.loc['depamor'])
+            self.calc_ratios_df[ratio] = \
+               self.cf_stmnt_df['ncfdiv'] / \
+               (self.i_stmnt_df['netinc'] + self.cf_stmnt_df['depamor'])
             return
 
         def _rough_affo_dividend_payout_ratio():
-            self.calc_ratios_df.loc[ratio] = \
-                self.cf_stmnt_df.loc['ncfdiv'] / \
-                (self.i_stmnt_df.loc['netinc'] + self.cf_stmnt_df.loc['depamor'] +
-                 self.cf_stmnt_df.loc['capex'])
+            self.calc_ratios_df[ratio] = \
+                self.cf_stmnt_df['ncfdiv'] / \
+                (self.i_stmnt_df['netinc'] + self.cf_stmnt_df['depamor'] +
+                 self.cf_stmnt_df['capex'])
             return
 
         def _income_dividend_payout_ratio():
-            self.calc_ratios_df.loc[ratio] = \
-                self.cf_stmnt_df.loc['ncfdiv'] / self.i_stmnt_df.loc['netinc']
+            self.calc_ratios_df[ratio] = \
+                self.cf_stmnt_df['ncfdiv'] / self.i_stmnt_df['netinc']
             return
 
         def _price_rough_ffo_ps_ratio():
-            self.calc_ratios_df.loc[ratio] = \
-                self.i_stmnt_df.loc['price'] /  \
-                (self.calc_ratios_df.loc['rough_ffo'] / \
-                        self.bal_stmnt_df.loc['shareswa'])
+            self.calc_ratios_df[ratio] = \
+                self.i_stmnt_df['price'] /  \
+                (self.calc_ratios_df['rough_ffo'] / \
+                        self.bal_stmnt_df['shareswa'])
             return
 
         def _rough_ffo_ps():
-            self.calc_ratios_df.loc[ratio] = \
-                (self.calc_ratios_df.loc['rough_ffo'] / \
-                        self.bal_stmnt_df.loc['shareswa'])
+            self.calc_ratios_df[ratio] = \
+                (self.calc_ratios_df['rough_ffo'] / \
+                        self.bal_stmnt_df['shareswa'])
             return
 
         def _cfo_ps():
-            self.calc_ratios_df.loc[ratio] = \
-                (self.cf_stmnt_df.loc['ncfo'] / \
-                        self.bal_stmnt_df.loc['shareswa'])
+            self.calc_ratios_df[ratio] = \
+                (self.cf_stmnt_df['ncfo'] / \
+                        self.bal_stmnt_df['shareswa'])
             return
 
         def _fcf_ps():
-            self.calc_ratios_df.loc[ratio] = \
-                self.metrics_and_ratios_df.loc['fcf']  / \
-                        self.bal_stmnt_df.loc['shareswa']
+            self.calc_ratios_df[ratio] = \
+                self.metrics_and_ratios_df['fcf']  / \
+                        self.bal_stmnt_df['shareswa']
             return
 
         def _ev_opinc_ratio():
-            self.calc_ratios_df.loc[ratio] = \
-                self.metrics_and_ratios_df.loc['ev']/self.i_stmnt_df.loc['opinc']
+            self.calc_ratios_df[ratio] = \
+                self.metrics_and_ratios_df['ev']/self.i_stmnt_df['opinc']
             return
 
         # Kenneth Jeffrey Marshal, author of Good Stocks Cheap, definition
@@ -514,83 +514,83 @@ class Fundamentals_ng(object):
         # substracted but Is not available in the Sharadar API, probably a
         # scour the footnotes thing if really wanted to include this.
         def _kjm_capital_employed_1():
-            self.calc_ratios_df.loc[ratio] = \
-                self.bal_stmnt_df.loc['assets'] - \
-                self.bal_stmnt_df.loc['cashnequsd'] - \
-                self.bal_stmnt_df.loc['payables'] - \
-                self.bal_stmnt_df.loc['deferredrev']
+            self.calc_ratios_df[ratio] = \
+                self.bal_stmnt_df['assets'] - \
+                self.bal_stmnt_df['cashnequsd'] - \
+                self.bal_stmnt_df['payables'] - \
+                self.bal_stmnt_df['deferredrev']
             return
 
         def _kjm_capital_employed_2():
-            self.calc_ratios_df.loc[ratio] = \
-                self.bal_stmnt_df.loc['assets'] - \
-                self.bal_stmnt_df.loc['payables'] - \
-                self.bal_stmnt_df.loc['deferredrev']
+            self.calc_ratios_df[ratio] = \
+                self.bal_stmnt_df['assets'] - \
+                self.bal_stmnt_df['payables'] - \
+                self.bal_stmnt_df['deferredrev']
             return
 
         def _kjm_return_on_capital_employed_1():
-            self.calc_ratios_df.loc[ratio] = \
-                self.i_stmnt_df.loc['opinc'] / self.calc_ratios_df.loc['kjm_capital_employed_1']
+            self.calc_ratios_df[ratio] = \
+                self.i_stmnt_df['opinc'] / self.calc_ratios_df['kjm_capital_employed_1']
             return
 
         def _kjm_return_on_capital_employed_2():
-            self.calc_ratios_df.loc[ratio] = \
-                self.i_stmnt_df.loc['opinc'] / self.calc_ratios_df.loc['kjm_capital_employed_2']
+            self.calc_ratios_df[ratio] = \
+                self.i_stmnt_df['opinc'] / self.calc_ratios_df['kjm_capital_employed_2']
             return
 
         def _dividends_free_cash_flow_ratio():
-            self.calc_ratios_df.loc[ratio] = \
-                self.cf_stmnt_df.loc['ncfdiv'] / self.metrics_and_ratios_df.loc['fcf']
+            self.calc_ratios_df[ratio] = \
+                self.cf_stmnt_df['ncfdiv'] / self.metrics_and_ratios_df['fcf']
             return
         def _preferred_free_cash_flow_ratio():
-            self.calc_ratios_df.loc[ratio] = \
-                self.i_stmnt_df.loc['prefdivis'] / self.metrics_and_ratios_df.loc['fcf']
+            self.calc_ratios_df[ratio] = \
+                self.i_stmnt_df['prefdivis'] / self.metrics_and_ratios_df['fcf']
             return
 
         def _operating_margin():
-            self.calc_ratios_df.loc[ratio] = \
-                self.i_stmnt_df.loc['opinc']/self.i_stmnt_df.loc['revenue']
+            self.calc_ratios_df[ratio] = \
+                self.i_stmnt_df['opinc']/self.i_stmnt_df['revenue']
             return
 
         def _sg_and_a_gross_profit_ratio():
-            self.calc_ratios_df.loc[ratio] = \
-                self.i_stmnt_df.loc['sgna'] / self.i_stmnt_df.loc['GP']
+            self.calc_ratios_df[ratio] = \
+                self.i_stmnt_df['sgna'] / self.i_stmnt_df['gp']
             return
 
         def _ltdebt_cfo_ratio():
-            self.calc_ratios_df.loc[ratio] = \
-                self.bal_stmnt_df.loc['debtnc'] / self.cf_stmnt_df.loc['ncfo']
+            self.calc_ratios_df[ratio] = \
+                self.bal_stmnt_df['debtnc'] / self.cf_stmnt_df['ncfo']
             return
 
         def _ltdebt_earnings_ratio():
-            self.calc_ratios_df.loc[ratio] = \
-                self.bal_stmnt_df.loc['debtnc'] / self.i_stmnt_df.loc['netinc']
+            self.calc_ratios_df[ratio] = \
+                self.bal_stmnt_df['debtnc'] / self.i_stmnt_df['netinc']
             return
 
         def _free_cash_flow_conversion_ratio():
-            self.calc_ratios_df.loc[ratio] = \
-                self.metrics_and_ratios_df.loc['fcf'] / self.metrics_and_ratios_df.loc['ebitda']
+            self.calc_ratios_df[ratio] = \
+                self.metrics_and_ratios_df['fcf'] / self.metrics_and_ratios_df['ebitda']
             return
 
         # Pg 290 of Creative Cash Flow Reporting, Mumford et al.
         def _excess_cash_margin_ratio():
-            self.calc_ratios_df.loc[ratio] = \
-                (self.cf_stmnt_df.loc['ncfo'] - self.i_stmnt_df.loc['opinc']) * 100/ \
-                self.i_stmnt_df.loc['revenue']
+            self.calc_ratios_df[ratio] = \
+                (self.cf_stmnt_df['ncfo'] - self.i_stmnt_df['opinc']) * 100/ \
+                self.i_stmnt_df['revenue']
             return
 
         def _interest_to_cfo_plus_interest_coverage():
-            self.calc_ratios_df.loc[ratio] = \
-                self.i_stmnt_df.loc['intexp'] / \
-                    (self.cf_stmnt_df.loc['ncfo'] + self.i_stmnt_df.loc['intexp'])
+            self.calc_ratios_df[ratio] = \
+                self.i_stmnt_df['intexp'] / \
+                    (self.cf_stmnt_df['ncfo'] + self.i_stmnt_df['intexp'])
             return
         def _dividends_cfo_ratio():
-            self.calc_ratios_df.loc[ratio] = \
-                self.cf_stmnt_df.loc['ncfdiv'] / self.cf_stmnt_df.loc['ncfo'] 
+            self.calc_ratios_df[ratio] = \
+                self.cf_stmnt_df['ncfdiv'] / self.cf_stmnt_df['ncfo'] 
             return
         def _preferred_cfo_ratio():
-            self.calc_ratios_df.loc[ratio] = \
-                self.i_stmnt_df.loc['prefdivis'] / self.cf_stmnt_df.loc['ncfo'] 
+            self.calc_ratios_df[ratio] = \
+                self.i_stmnt_df['prefdivis'] / self.cf_stmnt_df['ncfo'] 
             return
 
         switcher = {
