@@ -150,50 +150,79 @@ class Fundamentals_ng(object):
 
         return loc_df
 
-    def get_trans_fmt_i_stmnt(self):
-        """ Returns a transposed income statement dataframe with description added
+    def get_transposed_and_formatted_i_stmnt(self):
+        """ Returns a transposed and formatted partial income statement dataframe with description added
         ready for printing to an excel sheet, or possible via html in the future.
-        The Transposed dataframe with added description columns is much easier to read.
-
+     
         Returns:
             A dataframe
         """
         stmnt_df = self.i_stmnt_df.copy()
         desc_dict = self.i_stmnt_ind_dict
         description = "Sharadar Income"
-        return self.__trans_fmt_stmnt(stmnt_df, desc_dict, description)
+        return self._transpose_and_format_stmnt(stmnt_df, desc_dict, description)
         
-    def get_trans_fmt_cf_stmnt(self):
+    def get_transposed_and_formatted_cf_stmnt(self):
+        """ Returns a transposed and formatted subset of the  cash flow statement dataframe
+        with description added ready for printing to an excel sheet, or possible via html in the future.
+     
+        Returns:
+            A dataframe
+        """
         stmnt_df = self.cf_stmnt_df.copy()
         desc_dict = self.cf_stmnt_ind_dict
         description = "Sharadar Cash Flow"
-        return self.__trans_fmt_stmnt(stmnt_df, desc_dict, description)
+        return self._transpose_and_format_stmnt(stmnt_df, desc_dict, description)
         
-    def get_trans_fmt_bal_stmnt(self):
+    def get_transposed_and_formatted_bal_stmnt(self):
+        """ Returns a transposed and formatted subset of the balance sheet statement dataframe
+        with description addedready for printing to an excel sheet, or possible via html in the future.
+     
+        Returns:
+            A dataframe
+        """
         stmnt_df = self.bal_stmnt_df.copy()
         desc_dict = self.bal_stmnt_ind_dict
         description = "Sharadar Balance"
 
-        return self.__trans_fmt_stmnt(stmnt_df, desc_dict,description)
+        return self._transpose_and_format_stmnt(stmnt_df, desc_dict,description)
 
-    def get_trans_fmt_metrics_and_ratios(self):
+    def get_transposed_and_formatted_metrics_and_ratios(self):
+        """ Returns a transposed and formatted subset of sharadar metrics and ratios statement dataframe
+        with description added ready for printing to an excel sheet, or possible via html in the future.
+     
+        Returns:
+            A dataframe
+        """
         stmnt_df = self.metrics_and_ratios_df.copy()
         desc_dict = self.metrics_and_ratios_ind_dict
         description = "Sharadar Metrics and Ratios"
+        return self._transpose_and_format_stmnt(stmnt_df, desc_dict,description)
 
-        return self.__trans_fmt_stmnt(stmnt_df, desc_dict,description)
+    def get_transposed_and_formatted_calculated_ratios(self):
+        """ Returns a transposed and formatted calculated ratios dataframe with description added
+        ready for printing to an excel sheet, or possible via html in the future.
+     
+        Returns:
+            A dataframe
+        """
+        stmnt_df = self.calc_ratios_df.copy()
+        desc_dict = self.calc_ratios_dict
+        description = "Calculated Metrics and Ratios"
+
+        return self._transpose_and_format_stmnt(stmnt_df, desc_dict,description)        
         
-    def __trans_fmt_stmnt(self, stmnt_df,description_dict,description_of_indictors):
-        """ Convert the df so that we have the indicators as rows and datefields as columns
+    def _transpose_and_format_stmnt(self, stmnt_df,description_dict,description_of_indicators):
+        """ Transpose the df so that we have the indicators as rows and datefields as columns
 
             Side effects. Modifies the passed in dataframe.
         """
-        # As a precursor to making the datefiels as comunt we set the datefield as the index.
-        # We then transpose the df such that the index becomes the columns and tge columns become rows
+        # As a precursor to making the datefields as columns we set the datefield as the index.
+        # We then transpose the dataframe such that the index becomes the columns and the columns become rows
         stmnt_df.set_index('datekey',inplace=True)
 
         # Transpose to get this dataframe ready for printing 
-        # Convert the df so that we have the indicators as rows and datefields as columns
+        # Convert the df so that we have the indicators as the index and datefields as columns
         ret_df = stmnt_df.transpose()
 
         # The columns are of a dateTime type, we need them to be text in order for the dataframe 
@@ -202,7 +231,7 @@ class Fundamentals_ng(object):
 
         
         # Now we want two additional descriptive columns in the dataframe.
-        # We want the  Description of the indicator in one column and the Sharadar code
+        # We want the description of the indicator in one column and the Sharadar code
         # in another.
         # Note that dictionary keys, in this case the Sharadar Indicator code
         # becomes the index of the newly created Pandas series. The values become the data associated 
@@ -219,7 +248,7 @@ class Fundamentals_ng(object):
         # 
         # Create a new column using the values from the index, similar to doing a .reset_index
         # but uses an explicit column instead of column 0  which  reset-index  does.
-        ret_df.insert(1, description_of_indictors + ' ' + self.dimension, ret_df.index)
+        ret_df.insert(1, description_of_indicators + ' ' + self.dimension, ret_df.index)
 
         return ret_df
 
@@ -323,7 +352,7 @@ class Fundamentals_ng(object):
         rows_written += 1
         return rows_written
     
-    def get_calc_ratios(self):
+    def calc_ratios(self):
         """Obtain some financial ratios and metrics skewed towards credit analysis.
         - Some suggested as useful in the book by Fridson and Alvarez:
         'Financial Statement Analysis'.
@@ -344,8 +373,12 @@ class Fundamentals_ng(object):
             logger.debug("get_calc_ratios: ratio = %s" % (ratio))
             self._calc_ratios(ratio)
 
+        # This datekey column will be needed later when we transpose the dataframe
+        # The sharadar returned dataframes included a datekey column as part of the results.
+        self.calc_ratios_df['datekey'] = self.i_stmnt_df['datekey']
+
         logger.debug("get_calc_ratios: dataframe = %s" % (self.calc_ratios_df))
-        return self.calc_ratios_df
+        return self.calc_ratios_df.copy()
 
     def _calc_ratios(self, ratio):
         # Debt to Cash Flow From Operations
@@ -540,7 +573,7 @@ class Fundamentals_ng(object):
 
         def _dividends_free_cash_flow_ratio():
             self.calc_ratios_df[ratio] = \
-                self.cf_stmnt_df['ncfdiv'] / self.metrics_and_ratios_df['fcf']
+                 - self.cf_stmnt_df['ncfdiv'] / self.metrics_and_ratios_df['fcf']
             return
         def _preferred_free_cash_flow_ratio():
             self.calc_ratios_df[ratio] = \
@@ -643,7 +676,7 @@ class Fundamentals_ng(object):
 
 
 
-class SharadarFundamentals_ng(Fundamentals_ng):
+class SharadarFundamentals(Fundamentals_ng):
 
     # the refactored version of SharadarFundamenals
     # Locally calculated by this package. For each ratio or metric in this
@@ -720,11 +753,7 @@ class SharadarFundamentals_ng(Fundamentals_ng):
 
 
     CALCULATED_RATIOS = [
-        ("operating_margin", 'Operating Margin: (Gross Profit - Opex)/ Revenue'),
-        ("sg_and_a_gross_profit_ratio", 'SG&A to Gross Profit Ratio'),
-        ("depreciation_revenue_ratio", 'Depreciation / Revenue'),
-        ("depreciation_cfo_ratio", 'Depreciation / Cash Flow From Operations'),
-        ("ev_opinc_ratio", 'Acquirers Multiple: Enterprise Value / Operating Income'),
+      
         ("debt_ebitda_ratio", 'Total Debt / ebitda'),
         ("debt_ebitda_minus_capex_ratio", 'Total Debt / (ebitda - CapEx)'),
         ("net_debt_ebitda_ratio", 'Net Debt / ebitda'),
@@ -736,30 +765,36 @@ class SharadarFundamentals_ng(Fundamentals_ng):
         ("ebitda_minus_capex_interest_coverage", 'ebitda - CapEx / Interest Expense'),
         ("interest_to_cfo_plus_interest_coverage", 'Interest / (CFO + Interest'), 
         ("debt_to_total_capital", 'Total Debt / Invested Capital'),
-        ("return_on_invested_capital", 'Return on Invested Capital: ebit / Invested Capital'),
-        ("kjm_capital_employed_1", 'Kenneth J  Marshal Capital Employed Subtract CASH'),
-        ("kjm_capital_employed_2", 'Kenneth J  Marshal Capital Employed'),
-        ("kjm_return_on_capital_employed_1", 'KJM Return on Capital Employed subtract CASH'),
-        ("kjm_return_on_capital_employed_2", 'KJM Return on Capital Employed'),
-        # fcf is already levered since CFO  already includes the effect of interest
-        # payments.
-#        ("free_cash_flow_levered", 'fcf-Levered: fcf - Interest Expenses'),
         ("debt_cfo_ratio", 'Total Debt / Cash Flow From Operations'),
         ("ltdebt_cfo_ratio", 'Long Term Debt / Cash Flow From Operations'),
         ("ltdebt_earnings_ratio", 'Long Term Debt / Income'),
-        ("rough_ffo", 'Rough FFO: Net Income plus Depreciation (missing cap gain from RE sales adjust)'),
-        ('rough_ffo_ps', 'Rough FFO per Share'),
-        ('price_rough_ffo_ps_ratio', 'Price divided by rough_ffo_ps'),
-        ('rough_ffo_dividend_payout_ratio', 'Dividends / rough_ffo'),
         ('income_dividend_payout_ratio', 'Dividends / Net Income'),
-        ('cfo_ps', 'Cash Flow from Operations  per Share'),
         ('dividends_cfo_ratio', 'Dividends/CFO'), 
         ('preferred_cfo_ratio', 'Preferred Payments/CFO'), 
         ('fcf_ps', 'Free Cash Flow per Share'),
         ('dividends_free_cash_flow_ratio', 'Dividends/fcf'),
         ('preferred_free_cash_flow_ratio', 'Preferred Payments/fcf'),
+        ("operating_margin", 'Operating Margin: (Gross Profit - Opex)/ Revenue'),
+        ("sg_and_a_gross_profit_ratio", 'SG&A to Gross Profit Ratio'),
+        ("ev_opinc_ratio", 'Acquirers Multiple: Enterprise Value / Operating Income'),
+        ("return_on_invested_capital", 'Return on Invested Capital: ebit / Invested Capital'),
+        ("kjm_capital_employed_1", 'Kenneth J  Marshal Capital Employed Subtract Cash'),
+        ("kjm_capital_employed_2", 'Kenneth J  Marshal Capital Employed'),
+        ("kjm_return_on_capital_employed_1", 'KJM Return on Capital Employed subtract Cash'),
+        ("kjm_return_on_capital_employed_2", 'KJM Return on Capital Employed'),
         ('free_cash_flow_conversion_ratio', 'Free Cash Flow Conversion Ratio'),
-        ('excess_cash_margin_ratio', 'Excess Cash Margin Ratio')
+        ('excess_cash_margin_ratio', 'Excess Cash Margin Ratio'),
+        ("depreciation_revenue_ratio", 'Depreciation / Revenue'),
+        ("depreciation_cfo_ratio", 'Depreciation / Cash Flow From Operations'),
+        # fcf is already levered since CFO  already includes the effect of interest
+        # payments.
+#        ("free_cash_flow_levered", 'fcf-Levered: fcf - Interest Expenses'),
+        ("rough_ffo", 'Rough FFO: Net Income plus Depreciation (missing cap gain from RE sales adjust)'),
+        ('rough_ffo_ps', 'Rough FFO per Share'),
+        ('price_rough_ffo_ps_ratio', 'Price divided by rough_ffo_ps'),
+        ('rough_ffo_dividend_payout_ratio', 'Dividends / rough_ffo'),
+       
+#        ('cfo_ps', 'Cash Flow from Operations  per Share'),
     ]
 
     def __init__(self, database, writer):
@@ -776,7 +811,7 @@ class SharadarFundamentals_ng(Fundamentals_ng):
     
 
 
-def stock_xlsx_refactor(outfile, stocks, database, dimension, periods):
+def stock_xlsx(outfile, stocks, database, dimension, periods):
     # Excel Housekeeping first
     # The writer contains books and sheets
     writer = pd.ExcelWriter(outfile,
@@ -786,7 +821,7 @@ def stock_xlsx_refactor(outfile, stocks, database, dimension, periods):
     # Get a stmnt dataframe, a quandl ratios dataframe and our calculated ratios dataframe
     # for each of these frames write into a separate worksheet per stock
     for stock in stocks:
-        fund = SharadarFundamentals_ng(database,writer)
+        fund = SharadarFundamentals(database,writer)
 
         logger.info('Processing the stock %s', stock)
 
@@ -797,10 +832,13 @@ def stock_xlsx_refactor(outfile, stocks, database, dimension, periods):
         except NotFoundError:
             logger.warning('NotFoundError when getting indicators for the stock %s', stock)
             continue
+
+        # Now calculate some of the additional ratios for credit analysis
+        fund.calc_ratios()
         
         row, col = 0, 0
         
-        i_stmnt_trans_df =  fund.get_trans_fmt_i_stmnt()
+        i_stmnt_trans_df =  fund.get_transposed_and_formatted_i_stmnt()
         rows_written = fund.write_df_to_excel_sheet(i_stmnt_trans_df, row, col,
                                                     shtname, dimension,
                                                     use_header=True)
@@ -815,37 +853,26 @@ def stock_xlsx_refactor(outfile, stocks, database, dimension, periods):
         # would also have to build these columns up bit by bit.
         # So maybe go sparing on CAGRS, and look for ones I want to compare in the future summary sheet work
   
-        cf_stmnt_trans_df =  fund.get_trans_fmt_cf_stmnt()
+        cf_stmnt_trans_df =  fund.get_transposed_and_formatted_cf_stmnt()
         rows_written = fund.write_df_to_excel_sheet(cf_stmnt_trans_df, row, col,
                                                     shtname,dimension,
                                                     use_header=True)
         row = row + rows_written + 1
         
-        bal_stmnt_trans_df =  fund.get_trans_fmt_bal_stmnt()
+        bal_stmnt_trans_df =  fund.get_transposed_and_formatted_bal_stmnt()
         rows_written = fund.write_df_to_excel_sheet(bal_stmnt_trans_df, row, col,
                                                     shtname,dimension,
                                                     use_header=True)
         row = row + rows_written + 1
         
         # Now for the metrics and ratios from the quandl API
-        metrics_and_ratios_df =  fund.get_trans_fmt_metrics_and_ratios()
+        metrics_and_ratios_df =  fund.get_transposed_and_formatted_metrics_and_ratios()
         rows_written = fund.write_df_to_excel_sheet(metrics_and_ratios_df, row, col,
                                                     shtname,dimension,
                                                     use_header=True)
         row = row + rows_written + 2
-
-        writer.save()
-
-#UPTO TODO
        
-        # Now calculate some of the additional ratios for credit analysis
-        calculated_ratios_df = fund.get_calc_ratios()
-
-        description_s = pd.Series(fund.calc_ratios_dict)
-        calculated_ratios_df.insert(0, 'Description', description_s)
-        calculated_ratios_df.insert(1, 'Calculated Metrics and Ratios', calculated_ratios_df.index)
-
-        row = row + 2
+        calculated_ratios_df =  fund.get_transposed_and_formatted_calculated_ratios()
         rows_written = fund.write_df_to_excel_sheet(calculated_ratios_df, row, col,
                                                     shtname, dimension)
         logger.info('Processed the stock %s', stock)
@@ -862,7 +889,7 @@ def main():
 
     outfile = 'quandl_ratios.xlsx'
     # stock_xlsx(outfile, stocks, "SF0", 'MRY', periods)
-    stock_xlsx_refactor(outfile, stocks, "SF0", 'MRY', periods)
+    stock_xlsx(outfile, stocks, "SF0", 'MRY', periods)
     # Refactor: Do this by leaving the existing stock_xlsx intact so we can refer
     # to how do write to teh excel sheet for example.
     # First off, do similar to what I did in Juniper notebook
