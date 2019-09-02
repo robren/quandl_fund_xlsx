@@ -124,6 +124,10 @@ class Fundamentals_ng(object):
         try:
             self.all_inds_df = quandl.get_table('SHARADAR/SF1', ticker=ticker,
                                             dimension=dimension)
+            # Earliest dates now first
+            self.all_inds_df.sort_values('datekey',inplace=True)
+            self.all_inds_df = self.all_inds_df.tail(periods)
+            
             loc_df = self.all_inds_df.copy()
 
             logger.debug("get_indicators: df columns  = %s" % (self.all_inds_df.columns.tolist()))
@@ -507,7 +511,8 @@ class Fundamentals_ng(object):
             return
 
         def _income_dividend_payout_ratio():
-            self.calc_ratios_df[ratio] = \
+            # negating since ncfdiv is returned as a negative number
+            self.calc_ratios_df[ratio] =  -\
                 self.cf_stmnt_df['ncfdiv'] / self.i_stmnt_df['netinc']
             return
 
@@ -618,7 +623,8 @@ class Fundamentals_ng(object):
                     (self.cf_stmnt_df['ncfo'] + self.i_stmnt_df['intexp'])
             return
         def _dividends_cfo_ratio():
-            self.calc_ratios_df[ratio] = \
+            # negating since ncfdiv is returned as a negative number
+            self.calc_ratios_df[ratio] = - \
                 self.cf_stmnt_df['ncfdiv'] / self.cf_stmnt_df['ncfo'] 
             return
         def _preferred_cfo_ratio():
