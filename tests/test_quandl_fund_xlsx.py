@@ -28,39 +28,39 @@ parentddir = os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.par
 sys.path.append(parentddir)
 
 
-from  quandl_fund_xlsx import fundamentals as fun
+from quandl_fund_xlsx import fundamentals as fun
 
 
-test_tmp_dir = './tests/test_tmp_dir'
+test_tmp_dir = "./tests/test_tmp_dir"
+
 
 def setup_module(module):
-    print ("\nsetup_module      module:%s" % module.__name__)
+    print("\nsetup_module      module:%s" % module.__name__)
     if not os.path.exists(test_tmp_dir):
         os.mkdir(test_tmp_dir)
- 
+
+
 def teardown_module(module):
-    print ("\nteardown_module   module:%s" % module.__name__)
-    
+    print("\nteardown_module   module:%s" % module.__name__)
+
+
 def setup_function(function):
-    print ("\nsetup_function      function:%s" % function.__name__)
- 
+    print("\nsetup_function      function:%s" % function.__name__)
+
 
 def test_fund_SF0_db_init():
     print(sys.path)
-    writer = pd.ExcelWriter("",
-                            engine='xlsxwriter',
-                            date_format='d mmmm yyyy')
-    f = fun.SharadarFundamentals('SF0',writer)
+    writer = pd.ExcelWriter("", engine="xlsxwriter", date_format="d mmmm yyyy")
+    f = fun.SharadarFundamentals("SF0", writer)
     assert f.database == "SF0"
 
 
 def test_fund_SF1_db_init():
     print(sys.path)
-    writer = pd.ExcelWriter("",
-                            engine='xlsxwriter',
-                            date_format='d mmmm yyyy')
-    f = fun.SharadarFundamentals('SF1',writer)
+    writer = pd.ExcelWriter("", engine="xlsxwriter", date_format="d mmmm yyyy")
+    f = fun.SharadarFundamentals("SF1", writer)
     assert f.database == "SF1"
+
 
 # When using the SF0 KEY, quandl sometimes complains abou accessing the API
 # too frequently
@@ -68,15 +68,12 @@ def test_fund_SF1_db_init():
 def test_fund_retreive_one():
     global test_tmp_dir
     if "QUANDL_API_SF0_KEY" not in os.environ:
-        pytest.skip("QUANDL_API_SFO_KEY not set in the environment") 
+        pytest.skip("QUANDL_API_SFO_KEY not set in the environment")
     print(sys.path)
-    writer = pd.ExcelWriter("",
-                        engine='xlsxwriter',
-                        date_format='d mmmm yyyy')
-    outfile  = test_tmp_dir + '/' + str(uuid.uuid4()) + '.xlsx'
+    writer = pd.ExcelWriter("", engine="xlsxwriter", date_format="d mmmm yyyy")
+    outfile = test_tmp_dir + "/" + str(uuid.uuid4()) + ".xlsx"
     path = pathlib.Path(outfile)
-    assert(path.exists() == False)
-    fun.stock_xlsx(outfile, ['AAPL'], "SF0", 'MRY', 5)
-    assert(path.exists() == True)
+    assert path.exists() == False
+    fun.stock_xlsx(outfile, ["AAPL"], "SF0", "MRY", 5)
+    assert path.exists() == True
     path.unlink()
-
