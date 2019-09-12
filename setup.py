@@ -24,7 +24,7 @@ test_requirements = [
 
 setup(
     name='quandl_fund_xlsx',
-    version='0.2.3',
+    version='0.3.0',
     description="A CLI tool using the Quandl API and the Sharadar Fundamentals database.",
     long_description=readme + '\n\n' + history,
     author="Robert Rennison",
@@ -53,6 +53,7 @@ setup(
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6'
+        'Programming Language :: Python :: 3.7'
     ],
     test_suite='tests',
     tests_require=test_requirements
