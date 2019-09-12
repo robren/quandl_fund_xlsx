@@ -84,7 +84,7 @@ Now uses the get_table methods from the quandl_api.
   environment variable  depending on which database the user is requesting to use.
 
 
-0.2.4 (2019-09-12)
+0.3.0 (2019-09-12)
 * Refactored by using and manipulating  the pandas dataframe as it'a returned from
   quandl/Sharadar. The dates are rows and the columns are the "observations"
   ie the revenue, income etc. The dataframe is transposed prior to writing to
