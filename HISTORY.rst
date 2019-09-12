@@ -82,3 +82,11 @@ Now uses the get_table methods from the quandl_api.
 -------------------
 * Check for the presence of the QUANDL_API_SF0_KEY or the QUANDL_API_SF1_KEY 
   environment variable  depending on which database the user is requesting to use.
+
+
+0.2.4 (2019-09-12)
+* Refactored by using and manipulating  the pandas dataframe as it'a returned from
+  quandl/Sharadar. The dates are rows and the columns are the "observations"
+  ie the revenue, income etc. The dataframe is transposed prior to writing to
+  excel so that the data is in the typically viewed format of dates as columns
+  and the observations as rows.
