@@ -41,7 +41,6 @@ pytest==3.2.1
 python-dateutil==2.6.1
 pytz==2017.2
 Quandl==3.4.5
-quandl-fund-xlsx==0.2.3
 radon==3.0.3
 requests==2.22.0
 requests-toolbelt==0.9.1
