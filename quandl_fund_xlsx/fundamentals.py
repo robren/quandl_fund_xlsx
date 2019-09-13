@@ -749,11 +749,13 @@ class Fundamentals_ng(object):
 
 class SharadarFundamentals(Fundamentals_ng):
 
-    # the refactored version of SharadarFundamenals
     # Locally calculated by this package. For each ratio or metric in this
     # table, there's a routine to calculate the value from the quandl API provided
     # statement indicator value.
+    # The first item in each tuple is the Sharadar Code, the second is
+    # a description.
 
+    # Income Statement Indicator Quandl/Sharadar Codes
     I_STMNT_IND = [
         ("datekey", "SEC filing date"),
         ("revenue", "Revenues"),
@@ -920,14 +922,6 @@ def stock_xlsx(outfile, stocks, database, dimension, periods):
         )
         row = row + rows_written + 1
 
-        # UPTO TODO implement the get_trans_fmt_i_stmnt call it and continue
-        # Perhaps get rid of teh spark lines since we're going back in time
-        # And get rid of the CAGR excel calcs.
-        # Have to fgure out how to incorporate CAGRS and YOY.
-        # as long as we add all of these to the relevant df e.g the fund.i_stmnt_df then the rest should fll  out.
-        # I would need to add to the  initial tuple lists to ensure we had a description for each cagr tuple.
-        # would also have to build these columns up bit by bit.
-        # So maybe go sparing on CAGRS, and look for ones I want to compare in the future summary sheet work
 
         cf_stmnt_trans_df = fund.get_transposed_and_formatted_cf_stmnt()
         rows_written = fund.write_df_to_excel_sheet(
@@ -956,6 +950,17 @@ def stock_xlsx(outfile, stocks, database, dimension, periods):
 
     writer.save()
 
+    # TODO CAGR values for some indicators e.g. Revenue,FCF,OI. Want to have a
+    # dataframe with ratios along the top and with CAGR values as some of these
+    # columns e.g  OCF-5-CAGR. The rows will be tickers and this combined df will 
+    # be written to a table.
+    # - Use term QoQ for the quarterly change in a value.
+    # - Use the term YoY for the yearly change
+    # - Then for some indicators  there's a longer trend, the 5YrCAGR
+    # - Do we get rid of the CAGR excel calcs, probably.
+    # - Have to fgure out how to incorporate CAGRS and YOY.
+    # - Would need to add to the initial tuple lists to ensure we had a description for each cagr tuple.
+    # So maybe go sparing on CAGRS, and look for ones I want to compare in the future summary sheet work
 
 def main():
 
@@ -967,30 +972,6 @@ def main():
     outfile = "quandl_ratios.xlsx"
     # stock_xlsx(outfile, stocks, "SF0", 'MRY', periods)
     stock_xlsx(outfile, stocks, "SF0", "MRY", periods)
-    # Refactor: Do this by leaving the existing stock_xlsx intact so we can refer
-    # to how do write to teh excel sheet for example.
-    # First off, do similar to what I did in Juniper notebook
-    # Get the whole df at one time.
-    # Transpose as the snippet in Save-goodies shows
-    # Call our write_df_to_excel_sheet, coercing the correct parameters.
-    # Don't tryt to perform custom calcs or CAGR calcs at this time.
-    # ( recall we can use shift for CAGR, when we need to do it)
-    # When we do need to compute cagr we should do it with the time series as the column and save off a new pandas
-    # series with all of the CAGR values.
-
-    # do one stock per df at this time, hold off on the fancy groupby and getting all stocks together.
-    # we can, later, store each ticker DF in an ordered dict indexed by ticker.  Maybe! Would a multi-index df help or
-    # be overkill
-
-    # the end goal will be to have a dataframe with  ratios along the top and with CAGR values as some of these
-    # columns e.g  OCF-5-CAGR. The rows will be tickers and this combined df will be written to a table.
-    # In fact I do not need to optimize my writing of the data to teh individual ticker sheets. I should but that's
-    # going to be just for reference.
-    # Use term QoQ for the quarterly change in a value.
-    # Use the term YoY for the yearly change
-    # The for some there's a longer trend, the 5YrCAGR
-
-    # Do I want to have a CAGR value displayed for each ratio I calculate ?
 
 
 if __name__ == "__main__":
