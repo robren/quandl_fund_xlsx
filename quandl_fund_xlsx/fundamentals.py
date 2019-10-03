@@ -602,7 +602,7 @@ class Fundamentals_ng(object):
         # subtracted and one where it's not. Accrued expenses should be
         # substracted but Is not available in the Sharadar API, probably a
         # scour the footnotes thing if really wanted to include this.
-        def _kjm_capital_employed_1():
+        def _kjm_capital_employed_sub_cash():
             self.calc_ratios_df[ratio] = (
                 self.bal_stmnt_df["assets"]
                 - self.bal_stmnt_df["cashnequsd"]
@@ -611,7 +611,7 @@ class Fundamentals_ng(object):
             )
             return
 
-        def _kjm_capital_employed_2():
+        def _kjm_capital_employed_with_cash():
             self.calc_ratios_df[ratio] = (
                 self.bal_stmnt_df["assets"]
                 - self.bal_stmnt_df["payables"]
@@ -619,15 +619,27 @@ class Fundamentals_ng(object):
             )
             return
 
-        def _kjm_return_on_capital_employed_1():
+        def _kjm_return_on_capital_employed_sub_cash():
             self.calc_ratios_df[ratio] = (
-                self.i_stmnt_df["opinc"] / self.calc_ratios_df["kjm_capital_employed_1"]
+                self.i_stmnt_df["opinc"] / self.calc_ratios_df["kjm_capital_employed_sub_cash"]
             )
             return
 
-        def _kjm_return_on_capital_employed_2():
+        def _kjm_return_on_capital_employed_with_cash():
             self.calc_ratios_df[ratio] = (
-                self.i_stmnt_df["opinc"] / self.calc_ratios_df["kjm_capital_employed_2"]
+                self.i_stmnt_df["opinc"] / self.calc_ratios_df["kjm_capital_employed_with_cash"]
+            )
+            return
+
+        def _kjm_fcf_return_on_capital_employed_sub_cash():
+            self.calc_ratios_df[ratio] = (
+                self.metrics_and_ratios_df["fcf"] / self.calc_ratios_df["kjm_capital_employed_sub_cash"]
+            )
+            return
+
+        def _kjm_fcf_return_on_capital_employed_with_cash():
+            self.calc_ratios_df[ratio] = (
+                self.metrics_and_ratios_df["fcf"] / self.calc_ratios_df["kjm_capital_employed_with_cash"]
             )
             return
 
@@ -722,10 +734,12 @@ class Fundamentals_ng(object):
             "price_rough_ffo_ps_ratio": _price_rough_ffo_ps_ratio,
             "rough_ffo_ps": _rough_ffo_ps,
             "ev_opinc_ratio": _ev_opinc_ratio,
-            "kjm_capital_employed_1": _kjm_capital_employed_1,
-            "kjm_capital_employed_2": _kjm_capital_employed_2,
-            "kjm_return_on_capital_employed_1": _kjm_return_on_capital_employed_1,
-            "kjm_return_on_capital_employed_2": _kjm_return_on_capital_employed_2,
+            "kjm_capital_employed_sub_cash": _kjm_capital_employed_sub_cash,
+            "kjm_capital_employed_with_cash": _kjm_capital_employed_with_cash,
+            "kjm_return_on_capital_employed_sub_cash": _kjm_return_on_capital_employed_sub_cash,
+            "kjm_return_on_capital_employed_with_cash": _kjm_return_on_capital_employed_with_cash,
+            "kjm_fcf_return_on_capital_employed_sub_cash": _kjm_fcf_return_on_capital_employed_sub_cash,
+            "kjm_fcf_return_on_capital_employed_with_cash": _kjm_fcf_return_on_capital_employed_with_cash,
             "dividends_free_cash_flow_ratio": _dividends_free_cash_flow_ratio,
             "preferred_free_cash_flow_ratio": _preferred_free_cash_flow_ratio,
             "operating_margin": _operating_margin,
@@ -759,10 +773,15 @@ class SharadarFundamentals(Fundamentals_ng):
     I_STMNT_IND = [
         ("datekey", "SEC filing date"),
         ("revenue", "Revenues"),
+        ("cor","Cost of Revenue"),
         ("gp", "Gross Profit"),
         ("sgna", "Sales General and Admin"),
+        ("rnd", "Research and Development Expense"),
+        ("opex", "Operating Expenses"),
         ("intexp", "Interest Expense"),
         ("taxexp", "Tax Expense"),
+        ("netincdis", "Net Loss Income from Discontinued Operations "),
+        ("netincnci", "Net Income to Non-Controlling Interests"),
         ("opinc", "Operating Income"),
         ("ebit", "Earnings Before Interest and Taxes"),
         ("netinc", "Net Income"),
@@ -825,6 +844,15 @@ class SharadarFundamentals(Fundamentals_ng):
     ]
 
     CALCULATED_RATIOS = [
+        ("kjm_capital_employed_sub_cash", "Kenneth J Marshal Capital Employed Subtract Cash"),
+        ("kjm_capital_employed_with_cash", "Kenneth J Marshal Capital Employed With Cash"),
+        (
+            "kjm_return_on_capital_employed_sub_cash",
+            "KJM Return on Capital Employed subtract Cash",
+        ),
+        ("kjm_return_on_capital_employed_with_cash", "KJM Return on Capital Employed With Cash"),
+        ("kjm_fcf_return_on_capital_employed_with_cash", "KJM Free Cash Flow ROCE With Cash"),
+        ("kjm_fcf_return_on_capital_employed_sub_cash", "KJM Free Cash FLow Subtract Cash"),
         ("debt_ebitda_ratio", "Total Debt / ebitda"),
         ("debt_ebitda_minus_capex_ratio", "Total Debt / (ebitda - CapEx)"),
         ("net_debt_ebitda_ratio", "Net Debt / ebitda"),
@@ -852,13 +880,7 @@ class SharadarFundamentals(Fundamentals_ng):
             "return_on_invested_capital",
             "Return on Invested Capital: ebit / Invested Capital",
         ),
-        ("kjm_capital_employed_1", "Kenneth J  Marshal Capital Employed Subtract Cash"),
-        ("kjm_capital_employed_2", "Kenneth J  Marshal Capital Employed"),
-        (
-            "kjm_return_on_capital_employed_1",
-            "KJM Return on Capital Employed subtract Cash",
-        ),
-        ("kjm_return_on_capital_employed_2", "KJM Return on Capital Employed"),
+        
         ("free_cash_flow_conversion_ratio", "Free Cash Flow Conversion Ratio"),
         ("excess_cash_margin_ratio", "Excess Cash Margin Ratio"),
         ("depreciation_revenue_ratio", "Depreciation / Revenue"),
