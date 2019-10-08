@@ -566,7 +566,8 @@ class Fundamentals_ng(object):
                 -self.cf_stmnt_df["ncfdiv"] / self.i_stmnt_df["netinc"]
             )
             return
-
+# TODO add some conditional logig to use the fullydiluted shares value when it
+# is provided
         def _price_rough_ffo_ps_ratio():
             self.calc_ratios_df[ratio] = self.i_stmnt_df["price"] / (
                 self.calc_ratios_df["rough_ffo"] / self.bal_stmnt_df["shareswa"]
@@ -584,6 +585,13 @@ class Fundamentals_ng(object):
                 self.cf_stmnt_df["ncfo"] / self.bal_stmnt_df["shareswa"]
             )
             return
+
+        def _opinc_ps():
+            self.calc_ratios_df[ratio] = (
+                self.i_stmnt_df["opinc"] / self.bal_stmnt_df["shareswa"]
+            )
+            return
+
 
         def _fcf_ps():
             self.calc_ratios_df[ratio] = (
@@ -640,6 +648,18 @@ class Fundamentals_ng(object):
         def _kjm_fcf_return_on_capital_employed_with_cash():
             self.calc_ratios_df[ratio] = (
                 self.metrics_and_ratios_df["fcf"] / self.calc_ratios_df["kjm_capital_employed_with_cash"]
+            )
+            return
+
+        def _kjm_delta_oi_fds():
+            self.calc_ratios_df[ratio] = (
+                    self.calc_ratios_df["opinc_ps"].pct_change()
+            )
+            return
+
+        def _kjm_delta_fcf_fds():
+            self.calc_ratios_df[ratio] = (
+                    self.calc_ratios_df["fcf_ps"].pct_change()
             )
             return
 
@@ -733,13 +753,10 @@ class Fundamentals_ng(object):
             "income_dividend_payout_ratio": _income_dividend_payout_ratio,
             "price_rough_ffo_ps_ratio": _price_rough_ffo_ps_ratio,
             "rough_ffo_ps": _rough_ffo_ps,
+            "opinc_ps": _opinc_ps,
+            "cfo_ps": _cfo_ps,
+            "fcf_ps": _fcf_ps,
             "ev_opinc_ratio": _ev_opinc_ratio,
-            "kjm_capital_employed_sub_cash": _kjm_capital_employed_sub_cash,
-            "kjm_capital_employed_with_cash": _kjm_capital_employed_with_cash,
-            "kjm_return_on_capital_employed_sub_cash": _kjm_return_on_capital_employed_sub_cash,
-            "kjm_return_on_capital_employed_with_cash": _kjm_return_on_capital_employed_with_cash,
-            "kjm_fcf_return_on_capital_employed_sub_cash": _kjm_fcf_return_on_capital_employed_sub_cash,
-            "kjm_fcf_return_on_capital_employed_with_cash": _kjm_fcf_return_on_capital_employed_with_cash,
             "dividends_free_cash_flow_ratio": _dividends_free_cash_flow_ratio,
             "preferred_free_cash_flow_ratio": _preferred_free_cash_flow_ratio,
             "operating_margin": _operating_margin,
@@ -747,12 +764,18 @@ class Fundamentals_ng(object):
             "ltdebt_cfo_ratio": _ltdebt_cfo_ratio,
             "ltdebt_earnings_ratio": _ltdebt_earnings_ratio,
             "free_cash_flow_conversion_ratio": _free_cash_flow_conversion_ratio,
-            "cfo_ps": _cfo_ps,
-            "fcf_ps": _fcf_ps,
             "excess_cash_margin_ratio": _excess_cash_margin_ratio,
             "interest_to_cfo_plus_interest_coverage": _interest_to_cfo_plus_interest_coverage,
             "dividends_cfo_ratio": _dividends_cfo_ratio,
             "preferred_cfo_ratio": _preferred_cfo_ratio,
+            "kjm_capital_employed_sub_cash": _kjm_capital_employed_sub_cash,
+            "kjm_capital_employed_with_cash": _kjm_capital_employed_with_cash,
+            "kjm_return_on_capital_employed_sub_cash": _kjm_return_on_capital_employed_sub_cash,
+            "kjm_return_on_capital_employed_with_cash": _kjm_return_on_capital_employed_with_cash,
+            "kjm_fcf_return_on_capital_employed_sub_cash": _kjm_fcf_return_on_capital_employed_sub_cash,
+            "kjm_fcf_return_on_capital_employed_with_cash": _kjm_fcf_return_on_capital_employed_with_cash,
+            "kjm_delta_oi_fds": _kjm_delta_oi_fds,
+            "kjm_delta_fcf_fds": _kjm_delta_fcf_fds
         }
 
         # Get the function from switcher dictionary
@@ -846,13 +869,15 @@ class SharadarFundamentals(Fundamentals_ng):
     CALCULATED_RATIOS = [
         ("kjm_capital_employed_sub_cash", "Kenneth J Marshal Capital Employed Subtract Cash"),
         ("kjm_capital_employed_with_cash", "Kenneth J Marshal Capital Employed With Cash"),
-        (
-            "kjm_return_on_capital_employed_sub_cash",
-            "KJM Return on Capital Employed subtract Cash",
-        ),
+        ("kjm_return_on_capital_employed_sub_cash", "KJM Return on Capital Employed subtract Cash"),
         ("kjm_return_on_capital_employed_with_cash", "KJM Return on Capital Employed With Cash"),
         ("kjm_fcf_return_on_capital_employed_with_cash", "KJM Free Cash Flow ROCE With Cash"),
         ("kjm_fcf_return_on_capital_employed_sub_cash", "KJM Free Cash FLow Subtract Cash"),
+        ("opinc_ps", "Operating Income Per Share"),
+        ("cfo_ps", "Cash Flow from Operations Per Share"),
+        ("fcf_ps", "Free Cash Flow per Share"),
+        ("kjm_delta_oi_fds", "KJM YoY change in Operating Income per Fully Diluted Share"),
+        ("kjm_delta_fcf_fds", "KJM YoY change in Free Cash Flow per Fully Diluted Share"),
         ("debt_ebitda_ratio", "Total Debt / ebitda"),
         ("debt_ebitda_minus_capex_ratio", "Total Debt / (ebitda - CapEx)"),
         ("net_debt_ebitda_ratio", "Net Debt / ebitda"),
@@ -870,7 +895,6 @@ class SharadarFundamentals(Fundamentals_ng):
         ("income_dividend_payout_ratio", "Dividends / Net Income"),
         ("dividends_cfo_ratio", "Dividends/CFO"),
         ("preferred_cfo_ratio", "Preferred Payments/CFO"),
-        ("fcf_ps", "Free Cash Flow per Share"),
         ("dividends_free_cash_flow_ratio", "Dividends/fcf"),
         ("preferred_free_cash_flow_ratio", "Preferred Payments/fcf"),
         ("operating_margin", "Operating Margin: (Gross Profit - Opex)/ Revenue"),
@@ -895,7 +919,6 @@ class SharadarFundamentals(Fundamentals_ng):
         ("rough_ffo_ps", "Rough FFO per Share"),
         ("price_rough_ffo_ps_ratio", "Price divided by rough_ffo_ps"),
         ("rough_ffo_dividend_payout_ratio", "Dividends / rough_ffo"),
-        #        ('cfo_ps', 'Cash Flow from Operations  per Share'),
     ]
 
     def __init__(self, database, writer):
