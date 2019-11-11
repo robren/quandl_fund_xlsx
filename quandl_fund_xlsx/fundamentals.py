@@ -663,6 +663,18 @@ class Fundamentals_ng(object):
             )
             return
 
+        def _kjm_delta_bv_fds():
+            self.calc_ratios_df[ratio] = (
+                    self.bal_stmnt_df["equity"].pct_change()
+            )
+            return
+
+        def _kjm_delta_tbv_fds():
+            self.calc_ratios_df[ratio] = (
+                    (self.bal_stmnt_df["equity"] - self.bal_stmnt_df["intangibles"]).pct_change()
+            )
+            return
+
         def _dividends_free_cash_flow_ratio():
             self.calc_ratios_df[ratio] = (
                 -self.cf_stmnt_df["ncfdiv"] / self.metrics_and_ratios_df["fcf"]
@@ -775,7 +787,9 @@ class Fundamentals_ng(object):
             "kjm_fcf_return_on_capital_employed_sub_cash": _kjm_fcf_return_on_capital_employed_sub_cash,
             "kjm_fcf_return_on_capital_employed_with_cash": _kjm_fcf_return_on_capital_employed_with_cash,
             "kjm_delta_oi_fds": _kjm_delta_oi_fds,
-            "kjm_delta_fcf_fds": _kjm_delta_fcf_fds
+            "kjm_delta_fcf_fds": _kjm_delta_fcf_fds,
+            "kjm_delta_bv_fds": _kjm_delta_bv_fds,
+            "kjm_delta_tbv_fds": _kjm_delta_tbv_fds
         }
 
         # Get the function from switcher dictionary
@@ -876,14 +890,16 @@ class SharadarFundamentals(Fundamentals_ng):
         ("opinc_ps", "Operating Income Per Share"),
         ("cfo_ps", "Cash Flow from Operations Per Share"),
         ("fcf_ps", "Free Cash Flow per Share"),
-        ("kjm_delta_oi_fds", "KJM YoY change in Operating Income per Fully Diluted Share"),
-        ("kjm_delta_fcf_fds", "KJM YoY change in Free Cash Flow per Fully Diluted Share"),
+        ("kjm_delta_oi_fds", "YoY change in Operating Income per Fully Diluted Share"),
+        ("kjm_delta_fcf_fds", "YoY change in Free Cash Flow per Fully Diluted Share"),
+        ("kjm_delta_bv_fds", "YoY change in Book Value per Fully Diluted Share"),
+        ("kjm_delta_tbv_fds", "YoY change in Tangible Book Value per Fully Diluted Share"),
+        ("liabilities_equity_ratio", "Total Liabilities / Shareholders Equity"),
         ("debt_ebitda_ratio", "Total Debt / ebitda"),
         ("debt_ebitda_minus_capex_ratio", "Total Debt / (ebitda - CapEx)"),
         ("net_debt_ebitda_ratio", "Net Debt / ebitda"),
         ("net_debt_ebitda_minus_capex_ratio", "Net Debt / (ebitda - CapEx)"),
         ("debt_equity_ratio", "Total Debt / Shareholders Equity"),
-        ("liabilities_equity_ratio", "Total Liabilities / Shareholders Equity"),
         ("ebit_interest_coverage", "ebit / Interest Expense"),
         ("ebitda_interest_coverage", "ebitda / Interest Expense"),
         ("ebitda_minus_capex_interest_coverage", "ebitda - CapEx / Interest Expense"),
