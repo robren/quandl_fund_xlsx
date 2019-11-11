@@ -17,7 +17,7 @@ History
 
 0.1.4 (2017-11-06)
 ------------------
-* Removed the --dimension CLI keyword. 
+* Removed the --dimension CLI keyword.
   Now uses Most Recent Year (MRY) for SF0 database
   and Most Recent Trailing 12 Months (MRT) for the SF1 database
 * Fix to avoid the Pandas future warning about decrementing
@@ -25,7 +25,7 @@ History
 
 0.1.6 (2018-01-26)
 -------------------
-Now uses the get_table methods from the quandl_api. 
+Now uses the get_table methods from the quandl_api.
 
 0.1.7 (2018-05-10)
 -------------------
@@ -44,7 +44,7 @@ Now uses the get_table methods from the quandl_api.
 -------------------
 * Added back support for the --dimension CLI option.
 
-0.1.10 (2018-10-29)    
+0.1.10 (2018-10-29)
 -------------------
 * Added some  new Cash Flow related ratios and corrected the LTDEBT ratios
 * Changed the default to be the paid SF1 Database as this is the one I'm using
@@ -53,40 +53,48 @@ Now uses the get_table methods from the quandl_api.
   SF1 codes.
 
 
-0.2.0 (2018-11-13)    
+0.2.0 (2018-11-13)
 -------------------
 * After learning that the sample data API now allows _all_ of the same
   indicators as those available using the paid SF! aPI key I was able to
-  remove a lot of special case code for the Sample data KEY. 
+  remove a lot of special case code for the Sample data KEY.
   The paid KEY allows for many more dimensions to be queried.
 * The CLI now defaults back to using the sample data SF0 API key.
-* Added a number of Cash Flow from Operations  based metrics as well as some 
+* Added a number of Cash Flow from Operations  based metrics as well as some
   Free Cash Flow based metrics.
-* Added a development test which uses the API and a sample data or SF0 API key 
+* Added a development test which uses the API and a sample data or SF0 API key
   to extract ratios for AAPL.
 * Added Excess Cash Margin ratio.
 
-0.2.1 (2018-11-13)    
+0.2.1 (2018-11-13)
 -------------------
 * Minor security fix, requests version now >=2.20.0
 *  Minor documentation cleanup
 
 
-0.2.2 (2018-11-13)    
+0.2.2 (2018-11-13)
 -------------------
 * Add support for the MRQ and ARQ dimensions.
 * Correct error in calculating CAGR when the data was given in quarterly increments.
 * Correctly reference the Excel spreadsheet example figures in the README.
 
-0.2.3 (2018-12-29)    
+0.2.3 (2018-12-29)
 -------------------
-* Check for the presence of the QUANDL_API_SF0_KEY or the QUANDL_API_SF1_KEY 
+* Check for the presence of the QUANDL_API_SF0_KEY or the QUANDL_API_SF1_KEY
   environment variable  depending on which database the user is requesting to use.
 
 
 0.3.0 (2019-09-12)
+------------------
 * Refactored by using and manipulating  the pandas dataframe as it'a returned from
   quandl/Sharadar. The dates are rows and the columns are the "observations"
   ie the revenue, income etc. The dataframe is transposed prior to writing to
   excel so that the data is in the typically viewed format of dates as columns
   and the observations as rows.
+
+0.3.1 (2019-11-11)
+------------------
+* Added some metrics favored by Kenneth J Marshall, author of
+  "Good Stocks Cheap: Value investing with confidence for a lifetime of
+  Stock Market Outperformance"
+
