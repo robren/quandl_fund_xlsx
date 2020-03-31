@@ -98,3 +98,6 @@ Now uses the get_table methods from the quandl_api.
   "Good Stocks Cheap: Value investing with confidence for a lifetime of
   Stock Market Outperformance"
 
+0.3.1 (2020-03-31)
+------------------
+* Added the working capital value from the balance sheet
