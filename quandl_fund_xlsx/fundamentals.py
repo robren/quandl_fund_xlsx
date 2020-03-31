@@ -857,6 +857,7 @@ class SharadarFundamentals(Fundamentals_ng):
         ("retearn", "Retained Earnings"),
         ("equity", "Shareholders Equity"),
         ("shareswa", "Weighted Average Shares"),
+        ("workingcapital", "Working Capital"),
     ]
     # Metrics and Ratio  Indicator Quandl/Sharadar Codes
     METRICS_AND_RATIOS_IND = [
