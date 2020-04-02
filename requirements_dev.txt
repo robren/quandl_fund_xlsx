@@ -31,7 +31,6 @@ python-jsonrpc-server==0.3.4
 python-language-server==0.31.9
 pytz==2019.3
 Quandl==3.5.0
-quandl-fund-xlsx==0.3.2
 requests==2.23.0
 rope==0.16.0
 six==1.14.0
