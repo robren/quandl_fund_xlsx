@@ -6,21 +6,20 @@ for a stock potfolio.
 The results are saved in an excel workbook with one sheet per stock
 as well as a summary sheet
 
-:copyright: (c) 2019 by Robert Rennison
+:copyright: (c) 2022 by Robert Rennison
 :license: Apache 2, see LICENCE for more details
 
 """
 import collections
 import logging
 import os
+import sys
 import pandas as pd
 import quandl
-import sys
 from quandl.errors.quandl_error import NotFoundError
 from xlsxwriter.utility import xl_range
 from xlsxwriter.utility import xl_rowcol_to_cell
 
-# from pdb import set_trace as bp
 
 # Added this one line below  to get logging from the requests module,
 # comment me out when done
@@ -38,14 +37,13 @@ logger.setLevel(logging.DEBUG)
 
 class Fundamentals_ng(object):
     def __init__(
-        self,
-        database,
-        i_ind,
-        cf_ind,
-        bal_ind,
-        metrics_and_ratios_ind,
-        calc_ratios,
-        writer,
+            self,
+            database,
+            i_ind,
+            cf_ind,
+            bal_ind,
+            metrics_and_ratios_ind,
+            calc_ratios,
     ):
         if database == "SF0":
             if "QUANDL_API_SF0_KEY" in os.environ:
@@ -81,19 +79,6 @@ class Fundamentals_ng(object):
         self.calc_ratios_df = None
         self.dimension = None
         self.periods = None
-
-        self.writer = writer
-        self.workbook = writer.book
-        self.format_bold = self.workbook.add_format()
-        self.format_bold.set_bold()
-        self.format_commas_2dec = self.workbook.add_format()
-        self.format_commas_2dec.set_num_format("#,##0")
-        self.format_commas = self.workbook.add_format()
-        self.format_commas.set_num_format("0.00")
-        self.format_justify = self.workbook.add_format()
-        self.format_justify.set_align("justify")
-
-        # Add all the other functions. Radically simplified
 
     def get_indicators(self, ticker, dimension, periods):
         """Obtains fundamental company indicators from the Quandl API.
@@ -161,8 +146,9 @@ class Fundamentals_ng(object):
         return loc_df
 
     def get_transposed_and_formatted_i_stmnt(self):
-        """ Returns a transposed and formatted partial income statement dataframe with description added
-        ready for printing to an excel sheet, or possible via html in the future.
+        """ Returns a transposed and formatted partial income statement dataframe with
+        description added ready for printing to an excel sheet, or possible via html
+        in the future.
 
         Returns:
             A dataframe
@@ -173,8 +159,9 @@ class Fundamentals_ng(object):
         return self._transpose_and_format_stmnt(stmnt_df, desc_dict, description)
 
     def get_transposed_and_formatted_cf_stmnt(self):
-        """ Returns a transposed and formatted subset of the  cash flow statement dataframe
-        with description added ready for printing to an excel sheet, or possible via html in the future.
+        """ Returns a transposed and formatted subset of the  cash flow statement 
+        dataframe with description added ready for printing to an excel sheet, or 
+        possible via html in the future.
 
         Returns:
             A dataframe
@@ -263,121 +250,6 @@ class Fundamentals_ng(object):
 
         return ret_df
 
-    def write_df_to_excel_sheet(
-        self, dframe, row, col, sheetname, dimension, use_header=True, num_text_cols=2
-    ):
-        """Writes a dataframe to an excel worksheet.
-        Args:
-            dframe: A Pandas dataframe. The index must have been promoted to
-                a column (using df.) prior to calling.
-            row: An int, the row to start writing at, zero based.
-            col: An int, the col to start writing at, zero based.
-            sheetname: A string, the desired name for the sheet.
-            dimension: A string representing the timeframe for which data is required.
-                For the SF0 sample database only 'MRY' or most recent yearly is supported.
-                For the SF1 database available options are: MRY, MRQ, MRT,ARY,ARQ,ART
-            use_header: Whether to print the header of the dataframe
-            num_text_cols: The number of columns which contain text. The remainder
-                of the columns are assumed to create numeric values.
-        Returns:
-            rows_written: The number of rows written.
-
-        """
-
-        # logging.debug("write_df_to_excel_sheet: dataframe = %s" % ( dframe.info()))
-        # We need to write out the df first using to_excel to obtain a
-        # worksheet object which we'll then operate on for formatting.
-        # We do not write the header using to_excel but explicitly write
-        # later with Xlsxwriter.
-
-        if use_header is True:
-            start_row = row + 1
-        else:
-            start_row = row
-        dframe.to_excel(
-            self.writer,
-            sheet_name=sheetname,
-            startcol=col,
-            startrow=start_row,
-            index=False,
-            header=False,
-        )
-        worksheet = self.writer.sheets[sheetname]
-        rows_written = len(dframe.index)
-
-        num_cols = len(dframe.columns.values)
-
-        # Format the text columns and the numeric ones following these.
-        worksheet.set_column(0, num_text_cols - 1, 40, self.format_justify)
-        worksheet.set_column(num_text_cols, num_cols, 16, self.format_justify)
-
-        numeric_data_range = xl_range(
-            start_row, col + num_text_cols, start_row + rows_written, col + num_cols
-        )
-        worksheet.conditional_format(
-            numeric_data_range,
-            {
-                "type": "cell",
-                "criteria": "between",
-                "minimum": -100,
-                "maximum": 100,
-                "format": self.format_commas,
-            },
-        )
-        worksheet.conditional_format(
-            numeric_data_range,
-            {
-                "type": "cell",
-                "criteria": "not between",
-                "minimum": -100,
-                "maximum": 100,
-                "format": self.format_commas_2dec,
-            },
-        )
-
-        # Lets figure out CAGR for a given row item
-        cagr_col = col + num_cols
-        begin_cagr_calc_col = num_text_cols
-        end_cagr_calc_col = cagr_col - 1
-        for cagr_row in range(start_row, start_row + rows_written):
-            # looks like I'll need to use  xl_rowcol_to_cell()
-            beg_val = xl_rowcol_to_cell(cagr_row, begin_cagr_calc_col)
-            end_val = xl_rowcol_to_cell(cagr_row, end_cagr_calc_col)
-
-            if dimension == "MRY" or dimension == "ARY":
-                # We want the number of periods between the years.
-                years = end_cagr_calc_col - begin_cagr_calc_col
-            else:
-                # Theres a quarter between each reporting period
-                years = (end_cagr_calc_col - begin_cagr_calc_col) / 4
-
-            formula = '=IFERROR(({end_val}/{beg_val})^(1/{years}) - 1,"")'.format(
-                beg_val=beg_val, end_val=end_val, years=years
-            )
-            worksheet.write(cagr_row, cagr_col, formula)
-
-        # Sparklines make data trends easily visible
-        spark_col = cagr_col + 1
-        worksheet.set_column(spark_col, spark_col, 20)
-
-        for spark_row in range(start_row, start_row + rows_written):
-            numeric_data_row_range = xl_range(
-                spark_row, col + num_text_cols, spark_row, col + cagr_col - 1
-            )
-            worksheet.add_sparkline(
-                spark_row,
-                spark_col,
-                {"range": numeric_data_row_range, "markers": "True"},
-            )
-
-        if use_header is True:
-            for column, hdr in zip(
-                range(col, num_cols + col), dframe.columns.values.tolist()
-            ):
-                worksheet.write_string(row, column, hdr, self.format_bold)
-
-        rows_written += 1
-        return rows_written
 
     def calc_ratios(self):
         """Obtain some financial ratios and metrics skewed towards credit analysis.
@@ -402,7 +274,12 @@ class Fundamentals_ng(object):
 
         # This datekey column will be needed later when we transpose the dataframe
         # The sharadar returned dataframes included a datekey column as part of the results.
-        self.calc_ratios_df["datekey"] = self.i_stmnt_df["datekey"]
+        # self.calc_ratios_df["datekey"] = self.i_stmnt_df["datekey"]
+        # A nicer way is to insert the datekey column as the first column of
+        # our synthetically created calc_ratios_df. This way it's easier to
+        # see for debug and is in the same position in col 1 as the dfs
+        # returned by sharadar
+        self.calc_ratios_df.insert(0,"datekey",self.i_stmnt_df["datekey"])
 
         logger.debug("get_calc_ratios: dataframe = %s" % (self.calc_ratios_df))
         return self.calc_ratios_df.copy()
@@ -938,7 +815,7 @@ class SharadarFundamentals(Fundamentals_ng):
         ("rough_ffo_dividend_payout_ratio", "Dividends / rough_ffo"),
     ]
 
-    def __init__(self, database, writer):
+    def __init__(self, database):
         Fundamentals_ng.__init__(
             self,
             database,
@@ -947,19 +824,203 @@ class SharadarFundamentals(Fundamentals_ng):
             self.BAL_STMNT_IND,
             self.METRICS_AND_RATIOS_IND,
             self.CALCULATED_RATIOS,
-            writer,
         )
 
 
+def latest_indicator_values(ticker, indicators, all_indicators_df):
+    """ Obtains the latest values for a given list of indicators
+
+    Uses the class dataframes to lookup the latest in time values for each of the
+    indicators in the provided indicators list
+
+    Args:
+    ticker:
+    indicators: A list of indicators
+    all_indicators_df: The datafrade containing the full table of results for a
+    given dimension and ticker from Sharadar
+
+    Returns:
+
+    A list of Tuples of indicator, values pairs.
+
+    """
+
+    ind_val_l = None
+    for indicator in indicators:
+        try:
+            rec_ind_val = all_indicators_df[indicator].tail(1)
+        except KeyError():
+            logger.warning(
+                "KeyError when looking up indicator %s for the stock %s",
+                indicator, ticker)
+            continue
+
+        ind_val_l.append((indicator, rec_ind_val))
+
+    return ind_val_l
+
+
+def summarized_indicators(fund, stock):
+
+    # just for testing
+    inds_to_summarize = ("ebitda_interest_coverage",
+                         "net_debt_ebitda_ratio",
+                         "dividends_cfo_ratio")
+
+    summarized = latest_indicator_values(stock,
+                                         inds_to_summarize,
+                                         fund.all_indicators_df)
+
+    return summarized
+
+
+class Excel():
+
+    def __init__(self, outfile):
+        writer = pd.ExcelWriter(outfile, engine="xlsxwriter", date_format="d mmmm yyyy")
+        self.writer = writer
+        self.workbook = writer.book
+        self.format_bold = self.workbook.add_format()
+        self.format_bold.set_bold()
+        self.format_commas_2dec = self.workbook.add_format()
+        self.format_commas_2dec.set_num_format("#,##0")
+        self.format_commas = self.workbook.add_format()
+        self.format_commas.set_num_format("0.00")
+        self.format_justify = self.workbook.add_format()
+        self.format_justify.set_align("justify")
+
+    def save(self):
+        self.writer.save()
+
+    def write_sum_ind(self, sum_ind):
+        # implement me
+        # do we need a separate init of the summary sheet
+        None
+
+    def write_df(
+        self, dframe, row, col, sheetname, dimension, use_header=True, num_text_cols=2
+    ):
+        """Writes a dataframe to an excel worksheet.
+        Args:
+            dframe: A Pandas dataframe. The index must have been promoted to
+                a column (using df.) prior to calling.
+            row: An int, the row to start writing at, zero based.
+            col: An int, the col to start writing at, zero based.
+            sheetname: A string, the desired name for the sheet.
+            dimension: A string representing the timeframe for which data is required.
+                For the SF0 sample database only 'MRY' or most recent yearly is supported.
+                For the SF1 database available options are: MRY, MRQ, MRT,ARY,ARQ,ART
+            use_header: Whether to print the header of the dataframe
+            num_text_cols: The number of columns which contain text. The remainder
+                of the columns are assumed to create numeric values.
+        Returns:
+            rows_written: The number of rows written.
+
+        """
+
+        # logging.debug("write_df_to_excel_sheet: dataframe = %s" % ( dframe.info()))
+        # We need to write out the df first using to_excel to obtain a
+        # worksheet object which we'll then operate on for formatting.
+        # We do not write the header using to_excel but explicitly write
+        # later with Xlsxwriter.
+
+        if use_header is True:
+            start_row = row + 1
+        else:
+            start_row = row
+        dframe.to_excel(
+            self.writer,
+            sheet_name=sheetname,
+            startcol=col,
+            startrow=start_row,
+            index=False,
+            header=False,
+        )
+        worksheet = self.writer.sheets[sheetname]
+        rows_written = len(dframe.index)
+
+        num_cols = len(dframe.columns.values)
+
+        # Format the text columns and the numeric ones following these.
+        worksheet.set_column(0, num_text_cols - 1, 40, self.format_justify)
+        worksheet.set_column(num_text_cols, num_cols, 16, self.format_justify)
+
+        numeric_data_range = xl_range(
+            start_row, col + num_text_cols, start_row + rows_written, col + num_cols
+        )
+        worksheet.conditional_format(
+            numeric_data_range,
+            {
+                "type": "cell",
+                "criteria": "between",
+                "minimum": -100,
+                "maximum": 100,
+                "format": self.format_commas,
+            },
+        )
+        worksheet.conditional_format(
+            numeric_data_range,
+            {
+                "type": "cell",
+                "criteria": "not between",
+                "minimum": -100,
+                "maximum": 100,
+                "format": self.format_commas_2dec,
+            },
+        )
+
+        # Lets figure out CAGR for a given row item
+        cagr_col = col + num_cols
+        begin_cagr_calc_col = num_text_cols
+        end_cagr_calc_col = cagr_col - 1
+        for cagr_row in range(start_row, start_row + rows_written):
+            # looks like I'll need to use  xl_rowcol_to_cell()
+            beg_val = xl_rowcol_to_cell(cagr_row, begin_cagr_calc_col)
+            end_val = xl_rowcol_to_cell(cagr_row, end_cagr_calc_col)
+
+            if dimension == "MRY" or dimension == "ARY":
+                # We want the number of periods between the years.
+                years = end_cagr_calc_col - begin_cagr_calc_col
+            else:
+                # Theres a quarter between each reporting period
+                years = (end_cagr_calc_col - begin_cagr_calc_col) / 4
+
+            formula = '=IFERROR(({end_val}/{beg_val})^(1/{years}) - 1,"")'.format(
+                beg_val=beg_val, end_val=end_val, years=years
+            )
+            worksheet.write(cagr_row, cagr_col, formula)
+
+        # Sparklines make data trends easily visible
+        spark_col = cagr_col + 1
+        worksheet.set_column(spark_col, spark_col, 20)
+
+        for spark_row in range(start_row, start_row + rows_written):
+            numeric_data_row_range = xl_range(
+                spark_row, col + num_text_cols, spark_row, col + cagr_col - 1
+            )
+            worksheet.add_sparkline(
+                spark_row,
+                spark_col,
+                {"range": numeric_data_row_range, "markers": "True"},
+            )
+
+        if use_header is True:
+            for column, hdr in zip(
+                range(col, num_cols + col), dframe.columns.values.tolist()
+            ):
+                worksheet.write_string(row, column, hdr, self.format_bold)
+
+        rows_written += 1
+        return rows_written
+
 def stock_xlsx(outfile, stocks, database, dimension, periods):
-    # Excel Housekeeping first
-    # The writer contains books and sheets
-    writer = pd.ExcelWriter(outfile, engine="xlsxwriter", date_format="d mmmm yyyy")
+
+    excel = Excel(outfile)
 
     # Get a stmnt dataframe, a quandl ratios dataframe and our calculated ratios dataframe
     # for each of these frames write into a separate worksheet per stock
     for stock in stocks:
-        fund = SharadarFundamentals(database, writer)
+        fund = SharadarFundamentals(database)
 
         logger.info("Processing the stock %s", stock)
 
@@ -974,47 +1035,57 @@ def stock_xlsx(outfile, stocks, database, dimension, periods):
             continue
 
         # Now calculate some of the additional ratios for credit analysis
+
         fund.calc_ratios()
 
         row, col = 0, 0
 
         i_stmnt_trans_df = fund.get_transposed_and_formatted_i_stmnt()
-        rows_written = fund.write_df_to_excel_sheet(
+        rows_written = excel.write_df(
             i_stmnt_trans_df, row, col, shtname, dimension, use_header=True
         )
         row = row + rows_written + 1
 
-
         cf_stmnt_trans_df = fund.get_transposed_and_formatted_cf_stmnt()
-        rows_written = fund.write_df_to_excel_sheet(
+        rows_written = excel.write_df(
             cf_stmnt_trans_df, row, col, shtname, dimension, use_header=True
         )
         row = row + rows_written + 1
 
         bal_stmnt_trans_df = fund.get_transposed_and_formatted_bal_stmnt()
-        rows_written = fund.write_df_to_excel_sheet(
+        rows_written = excel.write_df(
             bal_stmnt_trans_df, row, col, shtname, dimension, use_header=True
         )
         row = row + rows_written + 1
 
         # Now for the metrics and ratios from the quandl API
-        metrics_and_ratios_df = fund.get_transposed_and_formatted_metrics_and_ratios()
-        rows_written = fund.write_df_to_excel_sheet(
-            metrics_and_ratios_df, row, col, shtname, dimension, use_header=True
+        metrics_and_ratios_trans_df = fund.get_transposed_and_formatted_metrics_and_ratios()
+        rows_written = excel.write_df(
+            metrics_and_ratios_trans_df, row, col, shtname, dimension, use_header=True
         )
         row = row + rows_written + 2
 
         calculated_ratios_df = fund.get_transposed_and_formatted_calculated_ratios()
-        rows_written = fund.write_df_to_excel_sheet(
+        rows_written = excel.write_df(
             calculated_ratios_df, row, col, shtname, dimension
         )
+
+#        sum_ind = summarized_indicators(fund,stock)
+
+#        breakpoint()
+        # ** All change since we will not make a df **
+
+#        excel.write_sum_ind(sum_ind)
+
         logger.info("Processed the stock %s", stock)
 
-    writer.save()
+    excel.save()
 
+    # I ended up calculating some YoY ( or period over period) changes on a small number of ratios
+    # directly as  calc_ratios e.g kjm_delta_oi_fds
     # TODO CAGR values for some indicators e.g. Revenue,FCF,OI. Want to have a
     # dataframe with ratios along the top and with CAGR values as some of these
-    # columns e.g  OCF-5-CAGR. The rows will be tickers and this combined df will 
+    # columns e.g  OCF-5-CAGR. The rows will be tickers and this combined df will
     # be written to a table.
     # - Use term QoQ for the quarterly change in a value.
     # - Use the term YoY for the yearly change
