@@ -281,6 +281,10 @@ class Fundamentals_ng(object):
         # returned by sharadar
         self.calc_ratios_df.insert(0,"datekey",self.i_stmnt_df["datekey"])
 
+        # Change  nan to None and inf to a big number.
+        self.calc_ratios_df = self.calc_ratios_df.replace({pd.np.nan:None})
+        self.calc_ratios_df = self.calc_ratios_df.replace({pd.np.inf:999999999})
+        
         logger.debug("get_calc_ratios: dataframe = %s" % (self.calc_ratios_df))
         return self.calc_ratios_df.copy()
 
@@ -827,7 +831,9 @@ class SharadarFundamentals(Fundamentals_ng):
         )
 
 
-def latest_indicator_values(ticker, indicators, all_indicators_df):
+def latest_indicator_values(ticker, indicators,
+                            calc_ratios_df,
+                            all_sharadar_inds_df):
     """ Obtains the latest values for a given list of indicators
 
     Uses the class dataframes to lookup the latest in time values for each of the
@@ -836,8 +842,9 @@ def latest_indicator_values(ticker, indicators, all_indicators_df):
     Args:
     ticker:
     indicators: A list of indicators
-    all_indicators_df: The datafrade containing the full table of results for a
-    given dimension and ticker from Sharadar
+    calc_ratios_df: The calulated ratios dataframe.
+    all_sharadar_inds_df: The datafrade containing the full table of results 
+    for a given dimension and ticker from Sharadar
 
     Returns:
 
@@ -845,17 +852,17 @@ def latest_indicator_values(ticker, indicators, all_indicators_df):
 
     """
 
-    ind_val_l = None
+    ind_val_l = []
     for indicator in indicators:
-        try:
-            rec_ind_val = all_indicators_df[indicator].tail(1)
-        except KeyError():
-            logger.warning(
-                "KeyError when looking up indicator %s for the stock %s",
-                indicator, ticker)
-            continue
 
-        ind_val_l.append((indicator, rec_ind_val))
+        if indicator in calc_ratios_df.columns:
+            recent_ind_val = calc_ratios_df[indicator].tail(1).iloc[0]
+        elif indicator in all_sharadar_inds_df.columns:
+            recent_ind_val = all_sharadar_inds_df[indicator].tail(1).iloc[0]
+        else:
+            raise KeyError("Couln't find indicator %s" % (indicator))
+
+        ind_val_l.append((indicator, recent_ind_val))
 
     return ind_val_l
 
@@ -869,7 +876,8 @@ def summarized_indicators(fund, stock):
 
     summarized = latest_indicator_values(stock,
                                          inds_to_summarize,
-                                         fund.all_indicators_df)
+                                         fund.calc_ratios_df,
+                                         fund.all_inds_df)
 
     return summarized
 
@@ -880,6 +888,9 @@ class Excel():
         writer = pd.ExcelWriter(outfile, engine="xlsxwriter", date_format="d mmmm yyyy")
         self.writer = writer
         self.workbook = writer.book
+        self.summary_sht = self.workbook.add_worksheet("Summary")
+        self.summary_sht.set_first_sheet()
+        self.summary_rows = []
         self.format_bold = self.workbook.add_format()
         self.format_bold.set_bold()
         self.format_commas_2dec = self.workbook.add_format()
@@ -888,15 +899,68 @@ class Excel():
         self.format_commas.set_num_format("0.00")
         self.format_justify = self.workbook.add_format()
         self.format_justify.set_align("justify")
+ 
 
     def save(self):
         self.writer.save()
 
-    def write_sum_ind(self, sum_ind):
-        # implement me
-        # do we need a separate init of the summary sheet
-        None
+    def add_summary_row(self, ticker, sum_ind_l):
+        """Accumulate summary values.
+        Args:
+        ticker: The ticker for the stock we are given data for.
+        sum_ind_l: A list of (indicator,value) tuples for a given ticker
+        
 
+        """
+        self.summary_rows.append((ticker,sum_ind_l))
+
+    def write_summary_sheet(self):
+        """Writes the accumulated summary_values to the Summary sheet
+        """
+        # calculate the size of the table  we will need
+        # worksheet.add_table('B3:F7')
+        # this is using row,column indexing
+        top_left = (2, 1)
+        y0, x0 = top_left
+        rows = len(self.summary_rows)
+
+        a_row = self.summary_rows[0]
+        ticker, indicator_list = a_row
+        cols = len(indicator_list)
+
+        bottom_right = (y0 + rows, x0 + cols )
+
+        # Create the empty table complete with column headers
+        # We need to create a list of dicts.
+        # Each entry of the form {'header':'Column name'}
+
+        dict_list = []
+        dict_list.append({'header':"Ticker"})
+        for ind in indicator_list:
+            hdr = {'header':ind[0]}
+            dict_list.append(hdr)
+        #breakpoint() 
+        self.summary_sht.add_table(*top_left,  *bottom_right,
+                               {'columns': dict_list})
+        
+        i = 0
+        for row in self.summary_rows:
+            val_list = []
+            ticker = row[0]
+            val_list.append(ticker)
+            for ind, val  in row[1]: # unpack the tuples of indicator value
+                val_list.append(val)
+            row_y = y0 + 1 + i
+            row_x = x0 
+            #breakpoint()
+            # Note we had to replace the infs and Nans prior to this
+            self.summary_sht.write_row(row_y, row_x, val_list)
+            i += 1
+            
+        # Now write the row data.
+        # worksheet.write_row('B4', data[0])
+
+        
     def write_df(
         self, dframe, row, col, sheetname, dimension, use_header=True, num_text_cols=2
     ):
@@ -1070,15 +1134,14 @@ def stock_xlsx(outfile, stocks, database, dimension, periods):
             calculated_ratios_df, row, col, shtname, dimension
         )
 
-#        sum_ind = summarized_indicators(fund,stock)
+        sum_ind = summarized_indicators(fund, stock)
 
-#        breakpoint()
-        # ** All change since we will not make a df **
 
-#        excel.write_sum_ind(sum_ind)
+        excel.add_summary_row(stock, sum_ind)
 
         logger.info("Processed the stock %s", stock)
 
+    excel.write_summary_sheet()
     excel.save()
 
     # I ended up calculating some YoY ( or period over period) changes on a small number of ratios
