@@ -12,6 +12,7 @@ as well as a summary sheet
 """
 import collections
 import logging
+import numpy as np
 import os
 import sys
 import pandas as pd
@@ -282,8 +283,8 @@ class Fundamentals_ng(object):
         self.calc_ratios_df.insert(0,"datekey",self.i_stmnt_df["datekey"])
 
         # Change  nan to None and inf to a big number.
-        self.calc_ratios_df = self.calc_ratios_df.replace({pd.np.nan:None})
-        self.calc_ratios_df = self.calc_ratios_df.replace({pd.np.inf:999999999})
+        self.calc_ratios_df = self.calc_ratios_df.replace({np.nan:None})
+        self.calc_ratios_df = self.calc_ratios_df.replace({np.inf:999999999})
         
         logger.debug("get_calc_ratios: dataframe = %s" % (self.calc_ratios_df))
         return self.calc_ratios_df.copy()
