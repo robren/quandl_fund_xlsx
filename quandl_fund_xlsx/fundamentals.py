@@ -282,7 +282,7 @@ class Fundamentals_ng(object):
         # returned by sharadar
         self.calc_ratios_df.insert(0,"datekey",self.i_stmnt_df["datekey"])
 
-        # Change  nan to None and inf to a big number.
+        # Change  nan to None and inf to a big recognizable number.
         self.calc_ratios_df = self.calc_ratios_df.replace({np.nan:None})
         self.calc_ratios_df = self.calc_ratios_df.replace({np.inf:999999999})
         
@@ -931,20 +931,31 @@ class Excel():
 
         bottom_right = (y0 + rows, x0 + cols )
 
-        # Create the empty table complete with column headers
-        # We need to create a list of dicts.
-        # Each entry of the form {'header':'Column name'}
+        self._create_empty_table(top_left, bottom_right, indicator_list)
+        self._data_to_summary_table(top_left, bottom_right)
+        self._format_table(top_left, bottom_right)
 
-        dict_list = []
-        dict_list.append({'header':"Ticker"})
-        for ind in indicator_list:
-            hdr = {'header':ind[0]}
-            dict_list.append(hdr)
-        #breakpoint() 
-        self.summary_sht.add_table(*top_left,  *bottom_right,
-                               {'columns': dict_list})
-        
+    def _format_table(self, top_left, bottom_right):
+        """ Will conditionally format each column of data.
+        Hard coded with the simple 3_color_scale
+        args:
+        top_left:     y,x coordinates of the top left of the table
+        bottom_right: y,x coordinates of the bottom right of the table
+        """
+        # adjust the top_left coordinates to exclude the table header and the
+        # first column
+
+        y_tl, x_tl = top_left
+        y_tl += 1
+        x_tl += 1
+        y_br, x_br = bottom_right
+
+        self.summary_sht.conditional_format(y_tl, x_tl, y_br, x_br,
+                                            {'type': '3_color_scale'})
+
+    def _data_to_summary_table(self, top_left, bottom_right):
         i = 0
+        y0, x0 = top_left
         for row in self.summary_rows:
             val_list = []
             ticker = row[0]
@@ -958,10 +969,21 @@ class Excel():
             self.summary_sht.write_row(row_y, row_x, val_list)
             i += 1
             
-        # Now write the row data.
-        # worksheet.write_row('B4', data[0])
-
         
+    def _create_empty_table(self, top_left, bottom_right, indicator_list):
+        # Create the empty table complete with column headers
+        # We need to create a list of dicts.
+        # Each entry of the form {'header':'Column name'}
+        dict_list = []
+        dict_list.append({'header':"Ticker"})
+        for ind in indicator_list:
+            hdr = {'header':ind[0]}
+            dict_list.append(hdr)
+        #breakpoint() 
+        self.summary_sht.add_table(*top_left,  *bottom_right,
+                               {'columns': dict_list})
+
+
     def write_df(
         self, dframe, row, col, sheetname, dimension, use_header=True, num_text_cols=2
     ):
