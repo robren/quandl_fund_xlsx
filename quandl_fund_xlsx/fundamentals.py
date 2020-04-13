@@ -45,6 +45,7 @@ class Fundamentals_ng(object):
             bal_ind,
             metrics_and_ratios_ind,
             calc_ratios,
+            summarize_ind
     ):
         if database == "SF0":
             if "QUANDL_API_SF0_KEY" in os.environ:
@@ -80,6 +81,7 @@ class Fundamentals_ng(object):
         self.calc_ratios_df = None
         self.dimension = None
         self.periods = None
+        self.summarize_ind_dict = collections.OrderedDict(summarize_ind)
 
     def get_indicators(self, ticker, dimension, periods):
         """Obtains fundamental company indicators from the Quandl API.
@@ -820,6 +822,16 @@ class SharadarFundamentals(Fundamentals_ng):
         ("rough_ffo_dividend_payout_ratio", "Dividends / rough_ffo"),
     ]
 
+    # The indicators which we'd like to show on a separate summary page
+    SUMMARIZE_IND = [("ebitda_interest_coverage", "asc"),
+                     ("net_debt_ebitda_ratio", "desc"),
+                     ("dividends_cfo_ratio", "asc"),
+                     ("preferred_cfo_ratio", "asc"),
+                     ("operating_margin", "asc"),
+                     ("kjm_delta_oi_fds", "asc")
+    ]
+
+
     def __init__(self, database):
         Fundamentals_ng.__init__(
             self,
@@ -829,58 +841,9 @@ class SharadarFundamentals(Fundamentals_ng):
             self.BAL_STMNT_IND,
             self.METRICS_AND_RATIOS_IND,
             self.CALCULATED_RATIOS,
+            self.SUMMARIZE_IND,
         )
 
-
-def latest_indicator_values(ticker, indicators,
-                            calc_ratios_df,
-                            all_sharadar_inds_df):
-    """ Obtains the latest values for a given list of indicators
-
-    Uses the class dataframes to lookup the latest in time values for each of the
-    indicators in the provided indicators list
-
-    Args:
-    ticker:
-    indicators: A list of indicators
-    calc_ratios_df: The calulated ratios dataframe.
-    all_sharadar_inds_df: The datafrade containing the full table of results 
-    for a given dimension and ticker from Sharadar
-
-    Returns:
-
-    A list of Tuples of indicator, values pairs.
-
-    """
-
-    ind_val_l = []
-    for indicator in indicators:
-
-        if indicator in calc_ratios_df.columns:
-            recent_ind_val = calc_ratios_df[indicator].tail(1).iloc[0]
-        elif indicator in all_sharadar_inds_df.columns:
-            recent_ind_val = all_sharadar_inds_df[indicator].tail(1).iloc[0]
-        else:
-            raise KeyError("Couln't find indicator %s" % (indicator))
-
-        ind_val_l.append((indicator, recent_ind_val))
-
-    return ind_val_l
-
-
-def summarized_indicators(fund, stock):
-
-    # just for testing
-    inds_to_summarize = ("ebitda_interest_coverage",
-                         "net_debt_ebitda_ratio",
-                         "dividends_cfo_ratio")
-
-    summarized = latest_indicator_values(stock,
-                                         inds_to_summarize,
-                                         fund.calc_ratios_df,
-                                         fund.all_inds_df)
-
-    return summarized
 
 
 class Excel():
@@ -905,7 +868,7 @@ class Excel():
     def save(self):
         self.writer.save()
 
-    def add_summary_row(self, ticker, sum_ind_l):
+    def add_summary_row(self, ticker, fund):
         """Accumulate summary values.
         Args:
         ticker: The ticker for the stock we are given data for.
@@ -913,9 +876,10 @@ class Excel():
         
 
         """
+        sum_ind_l = self._summarized_indicators(fund, ticker)
         self.summary_rows.append((ticker,sum_ind_l))
 
-    def write_summary_sheet(self):
+    def write_summary_sheet(self, summarized_ind_dict):
         """Writes the accumulated summary_values to the Summary sheet
         """
         # calculate the size of the table  we will need
@@ -933,25 +897,50 @@ class Excel():
 
         self._create_empty_table(top_left, bottom_right, indicator_list)
         self._data_to_summary_table(top_left, bottom_right)
-        self._format_table(top_left, bottom_right)
+        self._format_table(top_left, bottom_right, summarized_ind_dict)
 
-    def _format_table(self, top_left, bottom_right):
+    def _format_table(self, top_left, bottom_right, summarized_ind_dict):
         """ Will conditionally format each column of data.
         Hard coded with the simple 3_color_scale
         args:
         top_left:     y,x coordinates of the top left of the table
         bottom_right: y,x coordinates of the bottom right of the table
         """
+        # "Larger numbers are better" formatting
+        ascend_fmt = {'type': '3_color_scale', 'min_color': 'red',
+                      'max_color': 'green'}
+        # "Smaller numbers are better" formatting
+        descend_fmt = {'type': '3_color_scale', 'min_color': 'green',
+                      'max_color': 'red'}
+
         # adjust the top_left coordinates to exclude the table header and the
         # first column
-
-        y_tl, x_tl = top_left
-        y_tl += 1
-        x_tl += 1
+        # y_tc stands for y top column, so y coordinate of top of column
+        # x_tc stands for x top column, so x coordinate of top of column
+        y_tc, x_tc = top_left
+        y_tc += 1
+        x_tc += 1
         y_br, x_br = bottom_right
+        y_bc = y_br
+        x_bc = x_tc
 
-        self.summary_sht.conditional_format(y_tl, x_tl, y_br, x_br,
-                                            {'type': '3_color_scale'})
+        # Walk through each of the columns
+        for ind, fmt in summarized_ind_dict.items():
+            if fmt == 'asc':
+                self.summary_sht.conditional_format(y_tc, x_tc,
+                                                    y_bc, x_bc,
+                                                    ascend_fmt)
+            elif fmt == 'desc':
+                self.summary_sht.conditional_format(y_tc, x_tc,
+                                                    y_bc, x_bc,
+                                                    descend_fmt)
+            else:
+                raise ValueError('Format parameter must be asc or desc')
+
+            x_tc += 1
+            x_bc += 1
+        # breakpoint()
+        assert(x_bc - 1 == x_br)
 
     def _data_to_summary_table(self, top_left, bottom_right):
         i = 0
@@ -962,9 +951,9 @@ class Excel():
             val_list.append(ticker)
             for ind, val  in row[1]: # unpack the tuples of indicator value
                 val_list.append(val)
+
             row_y = y0 + 1 + i
-            row_x = x0 
-            #breakpoint()
+            row_x = x0
             # Note we had to replace the infs and Nans prior to this
             self.summary_sht.write_row(row_y, row_x, val_list)
             i += 1
@@ -975,15 +964,60 @@ class Excel():
         # We need to create a list of dicts.
         # Each entry of the form {'header':'Column name'}
         dict_list = []
-        dict_list.append({'header':"Ticker"})
+        dict_list.append({'header': "Ticker"})
         for ind in indicator_list:
-            hdr = {'header':ind[0]}
+            hdr = {'header': ind[0]}
             dict_list.append(hdr)
-        #breakpoint() 
+        # breakpoint()
         self.summary_sht.add_table(*top_left,  *bottom_right,
-                               {'columns': dict_list})
+                                   {'columns': dict_list})
+
+    def _latest_indicator_values(self, ticker, indicators,
+                                 calc_ratios_df,
+                                 all_sharadar_inds_df):
+        """Obtains the latest values for a given list of indicators
+
+        Uses the provided dataframes to lookup the latest in time values for
+        each of the indicators in the provided indicators list
+
+        Args:
+        ticker:
+        indicators: A list of indicators
+        calc_ratios_df: The calculated ratios dataframe.
+        all_sharadar_inds_df: The datafrade containing the full table of
+        results for a given dimension and ticker from Sharadar
+
+        Returns:
+
+        A list of Tuples of indicator, values pairs.
+
+        """
+        ind_val_l = []
+        for indicator in indicators:
+            if indicator in calc_ratios_df.columns:
+                recent_ind_val = calc_ratios_df[indicator].tail(1).iloc[0]
+            elif indicator in all_sharadar_inds_df.columns:
+                recent_ind_val = all_sharadar_inds_df[indicator].tail(1).iloc[0]
+            else:
+                raise KeyError("Couln't find indicator %s" % (indicator))
+
+            ind_val_l.append((indicator, recent_ind_val))
+
+        return ind_val_l
+
+    def _summarized_indicators(self, fund, stock):
+
+        # unpack the indicators from the inds_to_summarize
+        indicators = [*fund.summarize_ind_dict]
+        summarized = self._latest_indicator_values(stock,
+                                                   indicators,
+                                                   fund.calc_ratios_df,
+                                                   fund.all_inds_df)
+    # need to add fmt  to the thing we pass return and deal wit it all the way downstream
+        return summarized
 
 
+        
     def write_df(
         self, dframe, row, col, sheetname, dimension, use_header=True, num_text_cols=2
     ):
@@ -1148,7 +1182,8 @@ def stock_xlsx(outfile, stocks, database, dimension, periods):
         # Now for the metrics and ratios from the quandl API
         metrics_and_ratios_trans_df = fund.get_transposed_and_formatted_metrics_and_ratios()
         rows_written = excel.write_df(
-            metrics_and_ratios_trans_df, row, col, shtname, dimension, use_header=True
+            metrics_and_ratios_trans_df, row, col, shtname, dimension,
+            use_header=True
         )
         row = row + rows_written + 2
 
@@ -1157,14 +1192,10 @@ def stock_xlsx(outfile, stocks, database, dimension, periods):
             calculated_ratios_df, row, col, shtname, dimension
         )
 
-        sum_ind = summarized_indicators(fund, stock)
-
-
-        excel.add_summary_row(stock, sum_ind)
-
+        excel.add_summary_row(stock, fund)
         logger.info("Processed the stock %s", stock)
 
-    excel.write_summary_sheet()
+    excel.write_summary_sheet(fund.summarize_ind_dict)
     excel.save()
 
     # I ended up calculating some YoY ( or period over period) changes on a small number of ratios
