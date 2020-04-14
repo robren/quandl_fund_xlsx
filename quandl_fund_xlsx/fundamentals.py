@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 """This module provides functions to calculate fundamental ratios
 for a stock potfolio.
 
@@ -38,14 +36,14 @@ logger.setLevel(logging.DEBUG)
 
 class Fundamentals_ng(object):
     def __init__(
-            self,
-            database,
-            i_ind,
-            cf_ind,
-            bal_ind,
-            metrics_and_ratios_ind,
-            calc_ratios,
-            summarize_ind
+        self,
+        database,
+        i_ind,
+        cf_ind,
+        bal_ind,
+        metrics_and_ratios_ind,
+        calc_ratios,
+        summarize_ind,
     ):
         if database == "SF0":
             if "QUANDL_API_SF0_KEY" in os.environ:
@@ -162,12 +160,11 @@ class Fundamentals_ng(object):
         return self._transpose_and_format_stmnt(stmnt_df, desc_dict, description)
 
     def get_transposed_and_formatted_cf_stmnt(self):
-        """ Returns a transposed and formatted subset of the  cash flow statement 
-        dataframe with description added ready for printing to an excel sheet, or 
+        """ Returns a transposed and formatted subset of the  cash flow statement
+        dataframe with description added ready for printing to an excel sheet, or
         possible via html in the future.
-
         Returns:
-            A dataframe
+        A dataframe
         """
         stmnt_df = self.cf_stmnt_df.copy()
         desc_dict = self.cf_stmnt_ind_dict
@@ -188,8 +185,9 @@ class Fundamentals_ng(object):
         return self._transpose_and_format_stmnt(stmnt_df, desc_dict, description)
 
     def get_transposed_and_formatted_metrics_and_ratios(self):
-        """ Returns a transposed and formatted subset of sharadar metrics and ratios statement dataframe
-        with description added ready for printing to an excel sheet, or possible via html in the future.
+        """ Returns a transposed and formatted subset of sharadar metrics and
+        ratios statement dataframe with description added ready for printing to
+        an excel sheet, or possible via html in the future.
 
         Returns:
             A dataframe
@@ -200,8 +198,9 @@ class Fundamentals_ng(object):
         return self._transpose_and_format_stmnt(stmnt_df, desc_dict, description)
 
     def get_transposed_and_formatted_calculated_ratios(self):
-        """ Returns a transposed and formatted calculated ratios dataframe with description added
-        ready for printing to an excel sheet, or possible via html in the future.
+        """ Returns a transposed and formatted calculated ratios dataframe with
+        description added ready for printing to an excel sheet, or possible
+        via html in the future.
 
         Returns:
             A dataframe
@@ -253,7 +252,6 @@ class Fundamentals_ng(object):
 
         return ret_df
 
-
     def calc_ratios(self):
         """Obtain some financial ratios and metrics skewed towards credit analysis.
         - Some suggested as useful in the book by Fridson and Alvarez:
@@ -282,12 +280,12 @@ class Fundamentals_ng(object):
         # our synthetically created calc_ratios_df. This way it's easier to
         # see for debug and is in the same position in col 1 as the dfs
         # returned by sharadar
-        self.calc_ratios_df.insert(0,"datekey",self.i_stmnt_df["datekey"])
+        self.calc_ratios_df.insert(0, "datekey", self.i_stmnt_df["datekey"])
 
         # Change  nan to None and inf to a big recognizable number.
-        self.calc_ratios_df = self.calc_ratios_df.replace({np.nan:None})
-        self.calc_ratios_df = self.calc_ratios_df.replace({np.inf:999999999})
-        
+        self.calc_ratios_df = self.calc_ratios_df.replace({np.nan: None})
+        self.calc_ratios_df = self.calc_ratios_df.replace({np.inf: 999999999})
+
         logger.debug("get_calc_ratios: dataframe = %s" % (self.calc_ratios_df))
         return self.calc_ratios_df.copy()
 
@@ -450,8 +448,9 @@ class Fundamentals_ng(object):
                 -self.cf_stmnt_df["ncfdiv"] / self.i_stmnt_df["netinc"]
             )
             return
-# TODO add some conditional logig to use the fullydiluted shares value when it
-# is provided
+
+        # TODO add some conditional logig to use the fullydiluted shares value when it
+        # is provided
         def _price_rough_ffo_ps_ratio():
             self.calc_ratios_df[ratio] = self.i_stmnt_df["price"] / (
                 self.calc_ratios_df["rough_ffo"] / self.bal_stmnt_df["shareswa"]
@@ -475,7 +474,6 @@ class Fundamentals_ng(object):
                 self.i_stmnt_df["opinc"] / self.bal_stmnt_df["shareswa"]
             )
             return
-
 
         def _fcf_ps():
             self.calc_ratios_df[ratio] = (
@@ -513,50 +511,48 @@ class Fundamentals_ng(object):
 
         def _kjm_return_on_capital_employed_sub_cash():
             self.calc_ratios_df[ratio] = (
-                self.i_stmnt_df["opinc"] / self.calc_ratios_df["kjm_capital_employed_sub_cash"]
+                self.i_stmnt_df["opinc"]
+                / self.calc_ratios_df["kjm_capital_employed_sub_cash"]
             )
             return
 
         def _kjm_return_on_capital_employed_with_cash():
             self.calc_ratios_df[ratio] = (
-                self.i_stmnt_df["opinc"] / self.calc_ratios_df["kjm_capital_employed_with_cash"]
+                self.i_stmnt_df["opinc"]
+                / self.calc_ratios_df["kjm_capital_employed_with_cash"]
             )
             return
 
         def _kjm_fcf_return_on_capital_employed_sub_cash():
             self.calc_ratios_df[ratio] = (
-                self.metrics_and_ratios_df["fcf"] / self.calc_ratios_df["kjm_capital_employed_sub_cash"]
+                self.metrics_and_ratios_df["fcf"]
+                / self.calc_ratios_df["kjm_capital_employed_sub_cash"]
             )
             return
 
         def _kjm_fcf_return_on_capital_employed_with_cash():
             self.calc_ratios_df[ratio] = (
-                self.metrics_and_ratios_df["fcf"] / self.calc_ratios_df["kjm_capital_employed_with_cash"]
+                self.metrics_and_ratios_df["fcf"]
+                / self.calc_ratios_df["kjm_capital_employed_with_cash"]
             )
             return
 
         def _kjm_delta_oi_fds():
-            self.calc_ratios_df[ratio] = (
-                    self.calc_ratios_df["opinc_ps"].pct_change()
-            )
+            self.calc_ratios_df[ratio] = self.calc_ratios_df["opinc_ps"].pct_change()
             return
 
         def _kjm_delta_fcf_fds():
-            self.calc_ratios_df[ratio] = (
-                    self.calc_ratios_df["fcf_ps"].pct_change()
-            )
+            self.calc_ratios_df[ratio] = self.calc_ratios_df["fcf_ps"].pct_change()
             return
 
         def _kjm_delta_bv_fds():
-            self.calc_ratios_df[ratio] = (
-                    self.bal_stmnt_df["equity"].pct_change()
-            )
+            self.calc_ratios_df[ratio] = self.bal_stmnt_df["equity"].pct_change()
             return
 
         def _kjm_delta_tbv_fds():
             self.calc_ratios_df[ratio] = (
-                    (self.bal_stmnt_df["equity"] - self.bal_stmnt_df["intangibles"]).pct_change()
-            )
+                self.bal_stmnt_df["equity"] - self.bal_stmnt_df["intangibles"]
+            ).pct_change()
             return
 
         def _dividends_free_cash_flow_ratio():
@@ -673,7 +669,7 @@ class Fundamentals_ng(object):
             "kjm_delta_oi_fds": _kjm_delta_oi_fds,
             "kjm_delta_fcf_fds": _kjm_delta_fcf_fds,
             "kjm_delta_bv_fds": _kjm_delta_bv_fds,
-            "kjm_delta_tbv_fds": _kjm_delta_tbv_fds
+            "kjm_delta_tbv_fds": _kjm_delta_tbv_fds,
         }
 
         # Get the function from switcher dictionary
@@ -694,7 +690,7 @@ class SharadarFundamentals(Fundamentals_ng):
     I_STMNT_IND = [
         ("datekey", "SEC filing date"),
         ("revenue", "Revenues"),
-        ("cor","Cost of Revenue"),
+        ("cor", "Cost of Revenue"),
         ("gp", "Gross Profit"),
         ("sgna", "Sales General and Admin"),
         ("rnd", "Research and Development Expense"),
@@ -766,19 +762,40 @@ class SharadarFundamentals(Fundamentals_ng):
     ]
 
     CALCULATED_RATIOS = [
-        ("kjm_capital_employed_sub_cash", "Kenneth J Marshal Capital Employed Subtract Cash"),
-        ("kjm_capital_employed_with_cash", "Kenneth J Marshal Capital Employed With Cash"),
-        ("kjm_return_on_capital_employed_sub_cash", "KJM Return on Capital Employed subtract Cash"),
-        ("kjm_return_on_capital_employed_with_cash", "KJM Return on Capital Employed With Cash"),
-        ("kjm_fcf_return_on_capital_employed_with_cash", "KJM Free Cash Flow ROCE With Cash"),
-        ("kjm_fcf_return_on_capital_employed_sub_cash", "KJM Free Cash FLow Subtract Cash"),
+        (
+            "kjm_capital_employed_sub_cash",
+            "Kenneth J Marshal Capital Employed Subtract Cash",
+        ),
+        (
+            "kjm_capital_employed_with_cash",
+            "Kenneth J Marshal Capital Employed With Cash",
+        ),
+        (
+            "kjm_return_on_capital_employed_sub_cash",
+            "KJM Return on Capital Employed subtract Cash",
+        ),
+        (
+            "kjm_return_on_capital_employed_with_cash",
+            "KJM Return on Capital Employed With Cash",
+        ),
+        (
+            "kjm_fcf_return_on_capital_employed_with_cash",
+            "KJM Free Cash Flow ROCE With Cash",
+        ),
+        (
+            "kjm_fcf_return_on_capital_employed_sub_cash",
+            "KJM Free Cash FLow Subtract Cash",
+        ),
         ("opinc_ps", "Operating Income Per Share"),
         ("cfo_ps", "Cash Flow from Operations Per Share"),
         ("fcf_ps", "Free Cash Flow per Share"),
         ("kjm_delta_oi_fds", "YoY change in Operating Income per Fully Diluted Share"),
         ("kjm_delta_fcf_fds", "YoY change in Free Cash Flow per Fully Diluted Share"),
         ("kjm_delta_bv_fds", "YoY change in Book Value per Fully Diluted Share"),
-        ("kjm_delta_tbv_fds", "YoY change in Tangible Book Value per Fully Diluted Share"),
+        (
+            "kjm_delta_tbv_fds",
+            "YoY change in Tangible Book Value per Fully Diluted Share",
+        ),
         ("liabilities_equity_ratio", "Total Liabilities / Shareholders Equity"),
         ("debt_ebitda_ratio", "Total Debt / ebitda"),
         ("debt_ebitda_minus_capex_ratio", "Total Debt / (ebitda - CapEx)"),
@@ -805,7 +822,6 @@ class SharadarFundamentals(Fundamentals_ng):
             "return_on_invested_capital",
             "Return on Invested Capital: ebit / Invested Capital",
         ),
-        
         ("free_cash_flow_conversion_ratio", "Free Cash Flow Conversion Ratio"),
         ("excess_cash_margin_ratio", "Excess Cash Margin Ratio"),
         ("depreciation_revenue_ratio", "Depreciation / Revenue"),
@@ -823,14 +839,15 @@ class SharadarFundamentals(Fundamentals_ng):
     ]
 
     # The indicators which we'd like to show on a separate summary page
-    SUMMARIZE_IND = [("ebitda_interest_coverage", "asc"),
-                     ("net_debt_ebitda_ratio", "desc"),
-                     ("dividends_cfo_ratio", "asc"),
-                     ("preferred_cfo_ratio", "asc"),
-                     ("operating_margin", "asc"),
-                     ("kjm_delta_oi_fds", "asc")
+    # asc means "Higher is better" desc "Lower is better"
+    SUMMARIZE_IND = [
+        ("ebitda_interest_coverage", "asc"),
+        ("net_debt_ebitda_ratio", "desc"),
+        ("dividends_cfo_ratio", "desc"),
+        ("preferred_cfo_ratio", "asc"),
+        ("operating_margin", "asc"),
+        ("kjm_delta_oi_fds", "asc"),
     ]
-
 
     def __init__(self, database):
         Fundamentals_ng.__init__(
@@ -845,9 +862,7 @@ class SharadarFundamentals(Fundamentals_ng):
         )
 
 
-
-class Excel():
-
+class Excel:
     def __init__(self, outfile):
         writer = pd.ExcelWriter(outfile, engine="xlsxwriter", date_format="d mmmm yyyy")
         self.writer = writer
@@ -863,7 +878,6 @@ class Excel():
         self.format_commas.set_num_format("0.00")
         self.format_justify = self.workbook.add_format()
         self.format_justify.set_align("justify")
- 
 
     def save(self):
         self.writer.save()
@@ -873,11 +887,11 @@ class Excel():
         Args:
         ticker: The ticker for the stock we are given data for.
         sum_ind_l: A list of (indicator,value) tuples for a given ticker
-        
+
 
         """
         sum_ind_l = self._summarized_indicators(fund, ticker)
-        self.summary_rows.append((ticker,sum_ind_l))
+        self.summary_rows.append((ticker, sum_ind_l))
 
     def write_summary_sheet(self, summarized_ind_dict):
         """Writes the accumulated summary_values to the Summary sheet
@@ -893,7 +907,7 @@ class Excel():
         ticker, indicator_list = a_row
         cols = len(indicator_list)
 
-        bottom_right = (y0 + rows, x0 + cols )
+        bottom_right = (y0 + rows, x0 + cols)
 
         self._create_empty_table(top_left, bottom_right, indicator_list)
         self._data_to_summary_table(top_left, bottom_right)
@@ -906,12 +920,20 @@ class Excel():
         top_left:     y,x coordinates of the top left of the table
         bottom_right: y,x coordinates of the bottom right of the table
         """
+        crimson = "#DC143C"
+        greenish = "#00CC66"
         # "Larger numbers are better" formatting
-        ascend_fmt = {'type': '3_color_scale', 'min_color': 'red',
-                      'max_color': 'green'}
+        ascend_fmt = {
+            "type": "3_color_scale",
+            "min_color": crimson,
+            "max_color": greenish,
+        }
         # "Smaller numbers are better" formatting
-        descend_fmt = {'type': '3_color_scale', 'min_color': 'green',
-                      'max_color': 'red'}
+        descend_fmt = {
+            "type": "3_color_scale",
+            "min_color": greenish,
+            "max_color": crimson,
+        }
 
         # adjust the top_left coordinates to exclude the table header and the
         # first column
@@ -926,21 +948,17 @@ class Excel():
 
         # Walk through each of the columns
         for ind, fmt in summarized_ind_dict.items():
-            if fmt == 'asc':
-                self.summary_sht.conditional_format(y_tc, x_tc,
-                                                    y_bc, x_bc,
-                                                    ascend_fmt)
-            elif fmt == 'desc':
-                self.summary_sht.conditional_format(y_tc, x_tc,
-                                                    y_bc, x_bc,
-                                                    descend_fmt)
+            if fmt == "asc":
+                self.summary_sht.conditional_format(y_tc, x_tc, y_bc, x_bc, ascend_fmt)
+            elif fmt == "desc":
+                self.summary_sht.conditional_format(y_tc, x_tc, y_bc, x_bc, descend_fmt)
             else:
-                raise ValueError('Format parameter must be asc or desc')
+                raise ValueError("Format parameter must be asc or desc")
 
             x_tc += 1
             x_bc += 1
         # breakpoint()
-        assert(x_bc - 1 == x_br)
+        assert x_bc - 1 == x_br
 
     def _data_to_summary_table(self, top_left, bottom_right):
         i = 0
@@ -949,7 +967,7 @@ class Excel():
             val_list = []
             ticker = row[0]
             val_list.append(ticker)
-            for ind, val  in row[1]: # unpack the tuples of indicator value
+            for ind, val in row[1]:  # unpack the tuples of indicator value
                 val_list.append(val)
 
             row_y = y0 + 1 + i
@@ -957,24 +975,22 @@ class Excel():
             # Note we had to replace the infs and Nans prior to this
             self.summary_sht.write_row(row_y, row_x, val_list)
             i += 1
-            
-        
+
     def _create_empty_table(self, top_left, bottom_right, indicator_list):
         # Create the empty table complete with column headers
         # We need to create a list of dicts.
         # Each entry of the form {'header':'Column name'}
         dict_list = []
-        dict_list.append({'header': "Ticker"})
+        dict_list.append({"header": "Ticker"})
         for ind in indicator_list:
-            hdr = {'header': ind[0]}
+            hdr = {"header": ind[0]}
             dict_list.append(hdr)
         # breakpoint()
-        self.summary_sht.add_table(*top_left,  *bottom_right,
-                                   {'columns': dict_list})
+        self.summary_sht.add_table(*top_left, *bottom_right, {"columns": dict_list})
 
-    def _latest_indicator_values(self, ticker, indicators,
-                                 calc_ratios_df,
-                                 all_sharadar_inds_df):
+    def _latest_indicator_values(
+        self, ticker, indicators, calc_ratios_df, all_sharadar_inds_df
+    ):
         """Obtains the latest values for a given list of indicators
 
         Uses the provided dataframes to lookup the latest in time values for
@@ -1009,15 +1025,12 @@ class Excel():
 
         # unpack the indicators from the inds_to_summarize
         indicators = [*fund.summarize_ind_dict]
-        summarized = self._latest_indicator_values(stock,
-                                                   indicators,
-                                                   fund.calc_ratios_df,
-                                                   fund.all_inds_df)
-    # need to add fmt  to the thing we pass return and deal wit it all the way downstream
+        summarized = self._latest_indicator_values(
+            stock, indicators, fund.calc_ratios_df, fund.all_inds_df
+        )
+        # need to add fmt  to the thing we pass return and deal wit it all the way downstream
         return summarized
 
-
-        
     def write_df(
         self, dframe, row, col, sheetname, dimension, use_header=True, num_text_cols=2
     ):
@@ -1134,6 +1147,7 @@ class Excel():
         rows_written += 1
         return rows_written
 
+
 def stock_xlsx(outfile, stocks, database, dimension, periods):
 
     excel = Excel(outfile)
@@ -1180,10 +1194,11 @@ def stock_xlsx(outfile, stocks, database, dimension, periods):
         row = row + rows_written + 1
 
         # Now for the metrics and ratios from the quandl API
-        metrics_and_ratios_trans_df = fund.get_transposed_and_formatted_metrics_and_ratios()
+        metrics_and_ratios_trans_df = (
+            fund.get_transposed_and_formatted_metrics_and_ratios()
+        )
         rows_written = excel.write_df(
-            metrics_and_ratios_trans_df, row, col, shtname, dimension,
-            use_header=True
+            metrics_and_ratios_trans_df, row, col, shtname, dimension, use_header=True
         )
         row = row + rows_written + 2
 
@@ -1211,6 +1226,7 @@ def stock_xlsx(outfile, stocks, database, dimension, periods):
     # - Have to fgure out how to incorporate CAGRS and YOY.
     # - Would need to add to the initial tuple lists to ensure we had a description for each cagr tuple.
     # So maybe go sparing on CAGRS, and look for ones I want to compare in the future summary sheet work
+
 
 def main():
 
