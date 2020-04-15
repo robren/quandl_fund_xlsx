@@ -110,12 +110,12 @@ class Fundamentals_ng(object):
         # self.stmnt_df = quandl.get_table('SHARADAR/SF1', ticker=['AAPL','INTC'],dimension="MRY")
         # We'll get all of the data for a given ticker, then filter what we give back
         # Will need more than they ask for calculating CAGR values
-        # TODO, there has to be an easy way to pass in how many periods.
+        # Just get the complete table
         try:
             self.all_inds_df = quandl.get_table(
                 "SHARADAR/SF1", ticker=ticker, dimension=dimension
             )
-            # Earliest dates now first
+            # Earliest dates will now be at the top
             self.all_inds_df.sort_values("datekey", inplace=True)
             self.all_inds_df = self.all_inds_df.tail(periods)
 
@@ -130,8 +130,8 @@ class Fundamentals_ng(object):
             logger.warning("get_indicators: The ticker %s " "is not supported", ticker)
             raise
 
-        # Let's copy the relevant column data to the income statement dataframe
-        # the cash flow statement dataframe etc
+        # Let's create separate income statement dataframe, cf, balance and metrics dataframes
+        # by filtering out from the all_inds datafarame.
 
         self.i_stmnt_df = self.all_inds_df[self.i_stmnt_ind_dict.keys()].copy()
         self.cf_stmnt_df = self.all_inds_df[self.cf_stmnt_ind_dict.keys()].copy()
@@ -150,6 +150,13 @@ class Fundamentals_ng(object):
         """ Returns a transposed and formatted partial income statement dataframe with
         description added ready for printing to an excel sheet, or possible via html
         in the future.
+
+        The original dataframe is in a format where the column headers are the indicators
+        and the rows are the per year or per quarter samples. This is the desired format
+        for performing operations on the data, it's so-called clean-data.
+
+        For visualing in a spreadsheet we want the columns to be the dates and the rows
+        to be the indicators. Hence the need to transpose.
 
         Returns:
             A dataframe
@@ -847,16 +854,19 @@ class SharadarFundamentals(Fundamentals_ng):
     ]
 
     # The indicators which we'd like to show on a separate summary page
-    # We control the conditional formatting by means of a formatting control
-    # asc means "Higher is better" desc "Lower is better"
+    # Edit this to customize what we show.
+    # We control the excel conditional formatting by means of a formatting control
+    # asc (ascending)  means "Higher is better" desc (descending) "Lower is better"
     SUMMARIZE_IND = [
         ("ebitda_interest_coverage", "asc"),
         ("net_debt_ebitda_ratio", "desc"),
         ("workingcapital", "asc"),
         ("dividends_cfo_ratio", "desc"),
-        ("preferred_cfo_ratio", "desc"),
+        ("dividends_free_cash_flow_ratio", "desc"),
         ("operating_margin", "asc"),
         ("kjm_delta_oi_fds", "asc"),
+        ("kjm_delta_fcf_fds", "asc"),
+        ("preferred_cfo_ratio", "desc"),
     ]
 
     def __init__(self, database):
@@ -883,12 +893,12 @@ class Excel:
         self.format_bold = self.workbook.add_format()
         self.format_bold.set_bold()
         self.format_commas_2dec = self.workbook.add_format()
-        self.format_commas_2dec.set_num_format("#,##0")
+        self.format_commas_2dec.set_num_format("0.#?")
         self.format_commas_1dec = self.workbook.add_format()
         self.format_commas_1dec.set_num_format("#,##0.0")
 
         self.format_commas = self.workbook.add_format()
-        self.format_commas.set_num_format("0.00")
+        self.format_commas.set_num_format("#,##0")
         self.format_justify = self.workbook.add_format()
         self.format_justify.set_align("justify")
 
@@ -900,8 +910,6 @@ class Excel:
         Args:
         ticker: The ticker for the stock we are given data for.
         sum_ind_l: A list of (indicator,value) tuples for a given ticker
-
-
         """
         sum_ind_l = self._summarized_indicators(fund, ticker)
         self.summary_rows.append((ticker, sum_ind_l))
@@ -910,9 +918,8 @@ class Excel:
         """Writes the accumulated summary_values to the Summary sheet
         """
         # calculate the size of the table  we will need
-        # worksheet.add_table('B3:F7')
         # this is using row,column indexing
-        top_left = (2, 1)
+        top_left = (0,0)
         y0, x0 = top_left
         rows = len(self.summary_rows)
 
@@ -1017,9 +1024,7 @@ class Excel:
         results for a given dimension and ticker from Sharadar
 
         Returns:
-
         A list of Tuples of indicator, values pairs.
-
         """
         ind_val_l = []
         for indicator in indicators:
@@ -1035,7 +1040,6 @@ class Excel:
         return ind_val_l
 
     def _summarized_indicators(self, fund, stock):
-
         # unpack the indicators from the inds_to_summarize
         indicators = [*fund.summarize_ind_dict]
         summarized = self._latest_indicator_values(
@@ -1102,7 +1106,7 @@ class Excel:
                 "criteria": "between",
                 "minimum": -100,
                 "maximum": 100,
-                "format": self.format_commas,
+                "format": self.format_commas_2dec
             },
         )
         worksheet.conditional_format(
@@ -1112,7 +1116,7 @@ class Excel:
                 "criteria": "not between",
                 "minimum": -100,
                 "maximum": 100,
-                "format": self.format_commas_2dec,
+                "format": self.format_commas
             },
         )
 
@@ -1135,8 +1139,8 @@ class Excel:
             formula = '=IFERROR(({end_val}/{beg_val})^(1/{years}) - 1,"")'.format(
                 beg_val=beg_val, end_val=end_val, years=years
             )
-            worksheet.write(cagr_row, cagr_col, formula)
-
+#            worksheet.write(cagr_row, cagr_col, formula)
+            worksheet.write_formula(cagr_row, cagr_col, formula, self.format_commas_2dec)
         # Sparklines make data trends easily visible
         spark_col = cagr_col + 1
         worksheet.set_column(spark_col, spark_col, 20)
@@ -1183,7 +1187,6 @@ def stock_xlsx(outfile, stocks, database, dimension, periods):
             continue
 
         # Now calculate some of the additional ratios for credit analysis
-
         fund.calc_ratios()
 
         row, col = 0, 0
