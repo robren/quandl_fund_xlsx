@@ -21,6 +21,7 @@ import sys
 import os
 import pathlib
 import uuid
+from flaky import flaky
 
 
 # Grrr  overcoming python import drama!
@@ -50,21 +51,19 @@ def setup_function(function):
 
 def test_fund_SF0_db_init():
     print(sys.path)
-    writer = pd.ExcelWriter("", engine="xlsxwriter", date_format="d mmmm yyyy")
-    f = fun.SharadarFundamentals("SF0", writer)
+    f = fun.SharadarFundamentals("SF0" )
     assert f.database == "SF0"
 
 
 def test_fund_SF1_db_init():
     print(sys.path)
-    writer = pd.ExcelWriter("", engine="xlsxwriter", date_format="d mmmm yyyy")
-    f = fun.SharadarFundamentals("SF1", writer)
+    f = fun.SharadarFundamentals("SF1")
     assert f.database == "SF1"
 
 
 # When using the SF0 KEY, quandl sometimes complains abou accessing the API
 # too frequently
-@pytest.mark.flaky(reruns=3, reruns_delay=2)
+@flaky(max_runs=3)
 def test_fund_retreive_one():
     global test_tmp_dir
     if "QUANDL_API_SF0_KEY" not in os.environ:
