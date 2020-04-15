@@ -839,10 +839,12 @@ class SharadarFundamentals(Fundamentals_ng):
     ]
 
     # The indicators which we'd like to show on a separate summary page
+    # We control the conditional formatting by means of a formatting control
     # asc means "Higher is better" desc "Lower is better"
     SUMMARIZE_IND = [
         ("ebitda_interest_coverage", "asc"),
         ("net_debt_ebitda_ratio", "desc"),
+        ("workingcapital", "asc"),
         ("dividends_cfo_ratio", "desc"),
         ("preferred_cfo_ratio", "asc"),
         ("operating_margin", "asc"),
@@ -874,6 +876,9 @@ class Excel:
         self.format_bold.set_bold()
         self.format_commas_2dec = self.workbook.add_format()
         self.format_commas_2dec.set_num_format("#,##0")
+        self.format_commas_1dec = self.workbook.add_format()
+        self.format_commas_1dec.set_num_format("#,##0.0")
+
         self.format_commas = self.workbook.add_format()
         self.format_commas.set_num_format("0.00")
         self.format_justify = self.workbook.add_format()
@@ -910,7 +915,7 @@ class Excel:
         bottom_right = (y0 + rows, x0 + cols)
 
         self._create_empty_table(top_left, bottom_right, indicator_list)
-        self._data_to_summary_table(top_left, bottom_right)
+        self._data_to_summary_table(top_left, bottom_right, self.format_commas_1dec)
         self._format_table(top_left, bottom_right, summarized_ind_dict)
 
     def _format_table(self, top_left, bottom_right, summarized_ind_dict):
@@ -960,7 +965,7 @@ class Excel:
         # breakpoint()
         assert x_bc - 1 == x_br
 
-    def _data_to_summary_table(self, top_left, bottom_right):
+    def _data_to_summary_table(self, top_left, bottom_right, cell_format):
         i = 0
         y0, x0 = top_left
         for row in self.summary_rows:
@@ -973,7 +978,7 @@ class Excel:
             row_y = y0 + 1 + i
             row_x = x0
             # Note we had to replace the infs and Nans prior to this
-            self.summary_sht.write_row(row_y, row_x, val_list)
+            self.summary_sht.write_row(row_y, row_x, val_list, cell_format)
             i += 1
 
     def _create_empty_table(self, top_left, bottom_right, indicator_list):
