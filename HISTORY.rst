@@ -101,3 +101,13 @@ Now uses the get_table methods from the quandl_api.
 0.3.2 (2020-03-31)
 ------------------
 * Added the working capital value from the balance sheet
+  Note: For finance companies and REITS this is not provided by the API.
+
+0.4.0 (2020-04-21)
+------------------
+* Added a summary sheet as the first sheet of a workbook.
+  This is conditionally formatted to highlight the best and worst
+  values for each of the summarized metrics of each ticker in the
+  workbook.
+  The summary table is an excel table and thus each column can be sorted
+  to put best on top or worst on top.
