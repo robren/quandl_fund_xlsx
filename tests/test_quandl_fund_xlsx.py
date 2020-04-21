@@ -64,15 +64,39 @@ def test_fund_SF1_db_init():
 # When using the SF0 KEY, quandl sometimes complains abou accessing the API
 # too frequently
 @flaky(max_runs=3)
-def test_fund_retreive_one():
+def test_fund_SF0_retrieve_one_MRY():
     global test_tmp_dir
     if "QUANDL_API_SF0_KEY" not in os.environ:
         pytest.skip("QUANDL_API_SFO_KEY not set in the environment")
     print(sys.path)
-    writer = pd.ExcelWriter("", engine="xlsxwriter", date_format="d mmmm yyyy")
     outfile = test_tmp_dir + "/" + str(uuid.uuid4()) + ".xlsx"
     path = pathlib.Path(outfile)
     assert path.exists() == False
     fun.stock_xlsx(outfile, ["AAPL"], "SF0", "MRY", 5)
+    assert path.exists() == True
+    path.unlink()
+
+
+def test_fund_SF1_retrieve_one_MRY():
+    global test_tmp_dir
+    if "QUANDL_API_SF1_KEY" not in os.environ:
+        pytest.skip("QUANDL_API_SF1_KEY not set in the environment")
+    print(sys.path)
+    outfile = test_tmp_dir + "/" + str(uuid.uuid4()) + ".xlsx"
+    path = pathlib.Path(outfile)
+    assert path.exists() == False
+    fun.stock_xlsx(outfile, ["AAPL"], "SF1", "MRY", 5)
+    assert path.exists() == True
+    path.unlink()
+
+def test_fund_SF1_retrieve_one_MRT():
+    global test_tmp_dir
+    if "QUANDL_API_SF1_KEY" not in os.environ:
+        pytest.skip("QUANDL_API_SF1_KEY not set in the environment")
+    print(sys.path)
+    outfile = test_tmp_dir + "/" + str(uuid.uuid4()) + ".xlsx"
+    path = pathlib.Path(outfile)
+    assert path.exists() == False
+    fun.stock_xlsx(outfile, ["MSFT"], "SF1", "MRT", 10)
     assert path.exists() == True
     path.unlink()

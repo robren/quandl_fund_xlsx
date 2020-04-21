@@ -4,7 +4,7 @@ for a stock potfolio.
 The results are saved in an excel workbook with one sheet per stock
 as well as a summary sheet
 
-:copyright: (c) 2022 by Robert Rennison
+:copyright: (c) 2020 by Robert Rennison
 :license: Apache 2, see LICENCE for more details
 
 """
@@ -30,8 +30,8 @@ formatter = logging.Formatter("%(asctime)s %(levelname)-8s %(message)s")
 handler.setFormatter(formatter)
 logger.addHandler(handler)
 
-# logger.setLevel(logging.INFO)
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)
+#logger.setLevel(logging.DEBUG)
 
 
 class Fundamentals_ng(object):
@@ -109,13 +109,18 @@ class Fundamentals_ng(object):
 
         # self.stmnt_df = quandl.get_table('SHARADAR/SF1', ticker=['AAPL','INTC'],dimension="MRY")
         # We'll get all of the data for a given ticker, then filter what we give back
-        # Will need more than they ask for calculating CAGR values
-        # Just get the complete table
+        # At some point the SF0 table was removed and if we just  have an "SF0" database access
+        # we still need to request access to SHARADAR/SF1 table. Their API takes care of
+        # restricting access to the SF0 limited dataset
         try:
             self.all_inds_df = quandl.get_table(
                 "SHARADAR/SF1", ticker=ticker, dimension=dimension
             )
-            # Earliest dates will now be at the top
+
+            if self.all_inds_df.empty:
+                raise NotFoundError
+
+            # Sort so that earliest dates will now be at the top
             self.all_inds_df.sort_values("datekey", inplace=True)
             self.all_inds_df = self.all_inds_df.tail(periods)
 
@@ -743,10 +748,11 @@ class SharadarFundamentals(Fundamentals_ng):
         ("assets", "Total Assets"),
         ("deferredrev", "Deferred Revenue"),
         ("payables", "Payables"),
-        ("debtc", "Debt Current"),
+        ("liabilitiesc", "Current Liabilities"),
+        ("debtc", "Current Debt"),
         ("taxliabilities", "Tax Liabilities"),
-        ("debtnc", "Debt Non Current"),
-        ("liabilitiesnc", "Liabilities Non Current"),
+        ("debtnc", "Non Current Debt"),
+        ("liabilitiesnc", "Non Current Liabilities"),
         ("liabilities", "Total Liabilities"),
         ("retearn", "Retained Earnings"),
         ("equity", "Shareholders Equity"),
@@ -1228,20 +1234,6 @@ def stock_xlsx(outfile, stocks, database, dimension, periods):
 
     excel.write_summary_sheet(fund.summarize_ind_dict)
     excel.save()
-
-    # I ended up calculating some YoY ( or period over period) changes on a small number of ratios
-    # directly as  calc_ratios e.g kjm_delta_oi_fds
-    # TODO CAGR values for some indicators e.g. Revenue,FCF,OI. Want to have a
-    # dataframe with ratios along the top and with CAGR values as some of these
-    # columns e.g  OCF-5-CAGR. The rows will be tickers and this combined df will
-    # be written to a table.
-    # - Use term QoQ for the quarterly change in a value.
-    # - Use the term YoY for the yearly change
-    # - Then for some indicators  there's a longer trend, the 5YrCAGR
-    # - Do we get rid of the CAGR excel calcs, probably.
-    # - Have to fgure out how to incorporate CAGRS and YOY.
-    # - Would need to add to the initial tuple lists to ensure we had a description for each cagr tuple.
-    # So maybe go sparing on CAGRS, and look for ones I want to compare in the future summary sheet work
 
 
 def main():
