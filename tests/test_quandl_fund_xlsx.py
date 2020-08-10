@@ -10,8 +10,8 @@ Tests for `quandl_fund_xlsx` module.
 Mainly mock and very simple object instantiation, should act as a smoke test
 to ensure that that imports work in an installed package.
 
-Cannot call the actual API since this will require exposing our quandl API
-token!
+When we use travis-ci.org the Quandl API token can be set in our environment
+allowing the actual Sharadar data set to be used.
 
 """
 
