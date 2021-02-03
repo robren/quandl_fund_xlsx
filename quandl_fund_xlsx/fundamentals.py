@@ -4,7 +4,7 @@ for a stock potfolio.
 The results are saved in an excel workbook with one sheet per stock
 as well as a summary sheet
 
-:copyright: (c) 2020 by Robert Rennison
+:copyright: (c) 2021 by Robert Rennison
 :license: Apache 2, see LICENCE for more details
 
 """
@@ -521,14 +521,14 @@ class Fundamentals_ng(object):
             )
             return
 
-        def _kjm_return_on_capital_employed_sub_cash():
+        def _kjm_roce_sub_cash():
             self.calc_ratios_df[ratio] = (
                 self.i_stmnt_df["opinc"]
                 / self.calc_ratios_df["kjm_capital_employed_sub_cash"]
             )
             return
 
-        def _kjm_return_on_capital_employed_with_cash():
+        def _kjm_roce_with_cash():
             self.calc_ratios_df[ratio] = (
                 self.i_stmnt_df["opinc"]
                 / self.calc_ratios_df["kjm_capital_employed_with_cash"]
@@ -674,8 +674,8 @@ class Fundamentals_ng(object):
             "preferred_cfo_ratio": _preferred_cfo_ratio,
             "kjm_capital_employed_sub_cash": _kjm_capital_employed_sub_cash,
             "kjm_capital_employed_with_cash": _kjm_capital_employed_with_cash,
-            "kjm_return_on_capital_employed_sub_cash": _kjm_return_on_capital_employed_sub_cash,
-            "kjm_return_on_capital_employed_with_cash": _kjm_return_on_capital_employed_with_cash,
+            "kjm_roce_sub_cash": _kjm_roce_sub_cash,
+            "kjm_roce_with_cash": _kjm_roce_with_cash,
             "kjm_fcf_return_on_capital_employed_sub_cash": _kjm_fcf_return_on_capital_employed_sub_cash,
             "kjm_fcf_return_on_capital_employed_with_cash": _kjm_fcf_return_on_capital_employed_with_cash,
             "kjm_delta_oi_fds": _kjm_delta_oi_fds,
@@ -792,11 +792,11 @@ class SharadarFundamentals(Fundamentals_ng):
             "Kenneth J Marshal Capital Employed With Cash",
         ),
         (
-            "kjm_return_on_capital_employed_sub_cash",
+            "kjm_roce_sub_cash",
             "KJM Return on Capital Employed subtract Cash",
         ),
         (
-            "kjm_return_on_capital_employed_with_cash",
+            "kjm_roce_with_cash",
             "KJM Return on Capital Employed With Cash",
         ),
         (
@@ -867,9 +867,12 @@ class SharadarFundamentals(Fundamentals_ng):
         ("ebitda_interest_coverage", "asc"),
         ("net_debt_ebitda_ratio", "desc"),
         ("workingcapital", "asc"),
+        ("operating_margin", "asc"),
+        ("grossmargin", "asc"),
+        ("roic", "asc"),
+        ("kjm_roce_sub_cash", "asc"),
         ("dividends_cfo_ratio", "desc"),
         ("dividends_free_cash_flow_ratio", "desc"),
-        ("operating_margin", "asc"),
         ("kjm_delta_oi_fds", "asc"),
         ("kjm_delta_fcf_fds", "asc"),
         ("preferred_cfo_ratio", "desc"),
@@ -912,7 +915,7 @@ class Excel:
         self.writer.save()
 
     def add_summary_row(self, ticker, fund):
-        """Accumulate summary values.
+        """Accumulate summary values for a given ticker.
         Args:
         ticker: The ticker for the stock we are given data for.
         sum_ind_l: A list of (indicator,value) tuples for a given ticker
@@ -1026,7 +1029,7 @@ class Excel:
         ticker:
         indicators: A list of indicators
         calc_ratios_df: The calculated ratios dataframe.
-        all_sharadar_inds_df: The datafrade containing the full table of
+        all_sharadar_inds_df: The dataframe containing the full table of
         results for a given dimension and ticker from Sharadar
 
         Returns:
