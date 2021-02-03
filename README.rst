@@ -32,7 +32,7 @@ Features
 
 For a given ticker, fundamental data is obtained using the Quandl API and the
 Sharadar Fundamentals database. This data is then used to calculate various
-useful, financial ratios. The ratios  include 
+useful, financial ratios. The ratios  include
 
 - Profitability indicators
 - Financial leverage indicators
@@ -48,7 +48,7 @@ The output excel worksheet for each ticker processed is divided into three main 
 
 - Sharadar statement indicators. This is data obtained from the three main
   financial statements; the Income Statement, the Balance Sheet and the Cash Flow
-  Statement. 
+  Statement.
 
 - Sharadar Metrics and Ratio Indicators. These are quandl provided financial ratios.
 
@@ -60,14 +60,14 @@ The python Quandl API provides the ability to return data within python pandas
 dataframes. This makes calculating various ratios as simple as dividing two
 variables by each other.
 
-The calculations support the data offered by the free sample 
+The calculations support the data offered by the free sample
 database (formerly referred to by Sharadar as the SF0 database), and the paid for `SF1
 <https://www.quandl.com/data/SF1-Core-US-Fundamentals-Data/documentation/dimensions>`_
 database. The coverage universe is the same for both the sample data and the
 paid database. The key difference being, support as well as a much richer set
 of so-called Dimensions (timeperiods). For example the sample data is taken from the annual
 filings of companies, whereas the paid data allows for Trailing Twelve Month
-as well as quarterly data. 
+as well as quarterly data.
 
 Note:  For quarterly data, many of the ratios using income and cash flow statement values in the
 numerator will be inaccurate when using quarterly data e.g EBITDA/Intereset
@@ -75,12 +75,12 @@ expense or Total Debt/ Cash Flow from Operations.
 
 .. figure:: docs/Tech-1.png
    :scale: 25
-   
+
    The generated Excel workbook with one sheet per ticker.
 
 .. figure:: docs/Tech-2.png
    :scale: 25
-   
+
    Some bespoke metrics and ratios calculated based on Sharadar fundamentals.
 
 Installation
@@ -98,15 +98,15 @@ The key will then be available under "profile" when logging into Quandl. This
 key allows for access to sample data for many of the datasets.
 
 If you have have a key for the free sample data set the  QUANDL_API_SF0_KEY
-environment variable to the value of your key. 
+environment variable to the value of your key.
 
-If you have paid for access to the Sharadar 
+If you have paid for access to the Sharadar
 fundamentals data set, then set the QUANDL_API_SF1_KEY in the environment.
 
 .. code:: bash
 
    export QUANDL_API_SF0_KEY='YourQuandlAPIKey'
-   
+
    or
 
    export QUANDL_API_SF1_KEY='YourQuandlAPIKey'
@@ -202,4 +202,3 @@ This package was created with Cookiecutter_ and the `audreyr/cookiecutter-pypack
 
 .. _Cookiecutter: https://github.com/audreyr/cookiecutter
 .. _`audreyr/cookiecutter-pypackage`: https://github.com/audreyr/cookiecutter-pypackage
-

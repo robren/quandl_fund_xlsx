@@ -111,3 +111,7 @@ Now uses the get_table methods from the quandl_api.
   workbook.
   The summary table is an excel table and thus each column can be sorted
   to put best on top or worst on top.
+
+0.4.1 (2021-02-03)
+------------------
+* Added roic and roce to the summary sheet.
