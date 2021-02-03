@@ -33,7 +33,7 @@ import sys
 
 
 def main(args=None):
-    arguments = docopt(__doc__, version="version='0.4.0'")
+    arguments = docopt(__doc__, version="version='0.4.1'")
     print(arguments)
 
     file = arguments["--input"]
